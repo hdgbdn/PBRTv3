@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "sampler.h"
 #include "spectrum.h"
+#include "interaction.h"
 
 using namespace pbrt;
 
@@ -56,4 +57,23 @@ void SamplerIntegrator::Render(const Scene& scene)
 		camera->film->MergeFilmTile(std::move(filmTile));
 		}, nTiles);
 	//TODO Save final image after rendering
+}
+
+Spectrum SamplerIntegrator::SpecularReflect(const RayDifferential& ray, const SurfaceInteraction& isect, const Scene& scene, Sampler& sampler, MemoryArena& arena, int depth) const
+{
+	// Compute specular reflection direction wi and BSDF value
+	Vector3f wo = isect.wo, wi;
+	float pdf;
+	auto type = BxDFType(BSDF_REFLECTION | BSDF_SPECULAR);
+	Spectrum f = isect.bsdf->Sample_f(wo, &wi, sampler.Get2D(), &pdf, type);
+	// Return contribution of specular reflection
+	const Normal3f& ns = isect.shading.n;
+	if (pdf > 0 && !f.IsBlack() && AbsDot(wi, ns) != 0)
+	{
+		// Compute ray differential rd for specular reflection
+		RayDifferential rd;
+		return f * Li(rd, scene, sampler, arena, depth + 1) * AbsDot(wi, ns) / pdf;
+	}
+	else
+		return {0.f};
 }

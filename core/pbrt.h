@@ -30,6 +30,10 @@ namespace pbrt
 #else
 	typedef RGBSpectrum Spectrum;
 #endif
+	class Light;
+	class VisibilityTester;
+	class Interaction;
+	class SurfaceInteraction;
 }
 
 #endif

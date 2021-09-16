@@ -10,11 +10,18 @@ namespace pbrt
 	class Point2
 	{
 	public:
-		Point2(T xx, T yy);
+		Point2() = default;
+		Point2(T xx, T yy) {};
 		T x, y;
 	};
 	template <typename T>
-	class Point3 {};
+	class Point3
+	{
+	public:
+		Point3() = default;
+		Point3(T xx, T yy, T zz) {};
+		T x, y, z;
+	};
 
 	typedef Point2<float> Point2f;
 	typedef Point2<int> Point2i;
@@ -70,12 +77,42 @@ namespace pbrt
 	inline Bounds2iIterator begin(const Bounds2i& b) {}
 	inline Bounds2iIterator end(const Bounds2i& e) {}
 
+	template <typename T>
+	class Normal2{};
+	template <typename T>
+	class Normal3{};
+
+	typedef Normal3<float> Normal3f;
+
 	class Ray{};
 	class RayDifferential : public Ray
 	{
 	public:
 		void ScaleDifferentials(float s);
 	};
+
+	template <typename T>
+	inline T Dot(const Vector3<T>& v1, const Vector3<T>& v2) {
+		//DCHECK(!v1.HasNaNs() && !v2.HasNaNs());
+		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	}
+
+	template <typename T>
+	inline T AbsDot(const Vector3<T>& v1, const Vector3<T>& v2) {
+		//DCHECK(!v1.HasNaNs() && !v2.HasNaNs());
+		return std::abs(Dot(v1, v2));
+	}
+	template <typename T>
+	inline T AbsDot(const Vector3<T>& v1, const Normal3<T>& n2) {
+		//DCHECK(!v1.HasNaNs() && !n2.HasNaNs());
+		return std::abs(v1.x * n2.x + v1.y * n2.y + v1.z * n2.z);
+	}
+
+	template <typename T>
+	inline T AbsDot(const Normal3<T>& n1, const Normal3<T>& n2) {
+		//DCHECK(!n1.HasNaNs() && !n2.HasNaNs());
+		return std::abs(n1.x * n2.x + n1.y * n2.y + n1.z * n2.z);
+	}
 }
 
 #endif

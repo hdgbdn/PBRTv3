@@ -12,6 +12,7 @@ namespace pbrt
 		virtual void StartPixel(const Point2i& p);
 		virtual bool StartNextSample();
 		CameraSample GetCameraSample(const Point2i& pRaster);
+		virtual Point2f Get2D() = 0;
 		const int64_t samplesPerPixel;
 	};
 }

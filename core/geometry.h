@@ -1,11 +1,211 @@
 #ifndef PBRT_CORE_GEOMETRY_H
 #define PBRT_CORE_GEOMETRY_H
 
-#include "pbrt.h"
-#include "geometry.h"
+#include <cassert>
+#include <iostream>
+#include <fmt/core.h>
 
 namespace pbrt
 {
+	
+	template <typename T>
+	class Vector2
+	{
+	public:
+		T operator[](int i) const
+		{
+			assert(i >= 0 && i <= 1);
+			if (i == 0) return x;
+			return y;
+		}
+		T& operator[](int i)
+		{
+			assert(i >= 0 && i <= 1);
+			if (i == 0) return x;
+			return y;
+		}
+		T x, y;
+	};
+	template <typename T>
+	class Vector3
+	{
+	public:
+		Vector3() : x(0), y(0), z(0) {}
+		Vector3(T xx, T yy, T zz) : x(xx), y(yy), z(zz)
+		{
+			assert(!HasNaNs());
+		}
+		T operator[](size_t i) const
+		{
+			assert(i <= 2);
+			if (i == 0) return x;
+			if (i == 1) return y;
+			return z;
+		}
+		T& operator[](size_t i)
+		{
+			assert(i <= 2);
+			if (i == 0) return x;
+			if (i == 1) return y;
+			return z;
+		}
+		Vector3<T> operator+(const Vector3<T>& rhs) const
+		{
+			return Vector3<T>(x + rhs.x, y + rhs.y, z + rhs.z);
+		}
+		Vector3<T>& operator+=(const Vector3<T>& rhs)
+		{
+			x += rhs.x; y += rhs.y; z += rhs.z;
+			return *this;
+		}
+		Vector3<T> operator-(const Vector3<T>& rhs)
+		{
+			return Vector3<T>(x - rhs.x, y - rhs.y, z - rhs.z);
+		}
+		Vector3<T>& operator-=(Vector3<T>& lhs, const Vector3<T>& rhs)
+		{
+			x -= rhs.x; y -= rhs.y; z -= rhs.z;
+			return lhs;
+		}
+		Vector3<T> operator*(T s) const
+		{
+			return Vector3<T>(s * x, s * y, s * z);
+		}
+		Vector3<T>& operator*=(T s)
+		{
+			x *= s; y *= s; z *= s;
+			return *this;
+		}
+		Vector3<T> operator/(T f) const
+		{
+			assert(f != 0);
+			float inv = static_cast<float>(1 / f);
+			return Vector3(x * inv, y * inv, z * inv);
+		}
+		Vector3<T> &operator/=(T f)
+		{
+			assert(f != 0);
+			float inv = static_cast<float>(1 / f);
+			x *= inv; y *= inv; z *= inv;
+			return *this;
+		}
+		Vector3<T> operator-()
+		{
+			return Vector3<T>(-x, -y, -z);
+		}
+		float LengthSquared() const { return x * x + y * y + z * z; }
+		float Length() const { return std::sqrt(LengthSquared()); }
+		bool HasNaNs() const
+		{
+			return std::isnan(x) || std::isnan(y) || std::isnan(z);
+		}
+		T x, y, z;
+	};
+
+    template<typename T, typename U>
+    Vector3<T>& operator*(U s, const Vector3<T> &v)
+	{
+		return v * s;
+	}
+
+	template<typename T>
+	Vector3<T> Abs(const Vector3<T> &v)
+    {
+		return Vector3<T>(std::abs(v.x), std::abs(v.y), std::abs(v.z));
+    }
+
+	template<typename T>
+	Vector3<T> Cross(const Vector3<T> &lhs, const Vector3<T> &rhs)
+    {
+		double v1x = v1.x, v1y = v1.y, v1z = v1.z;
+		double v2x = v2.x, v2y = v2.y, v2z = v2.z;
+		return Vector3<T>(
+			(v1y * v2z) - (v1z * v2y),
+			(v1z * v2x) - (v1x * v2z),
+			(v1x * v2y) - (v1y * v2x)
+			);
+    }
+
+	template<typename T>
+	Vector3<T> Normalize(const Vector3<T> &v)
+    {
+		return v / v.Length();
+    }
+
+	template<typename T>
+	T MinComponent(const Vector3<T> &v)
+    {
+		return std::min(v.x, std::min(v.y, v.z));
+    }
+
+	template<typename T>
+	T MaxComponent(const Vector3<T>& v)
+	{
+		return std::max(v.x, std::max(v.y, v.z));
+	}
+
+	template<typename T>
+	size_t MaxDimension(const Vector3<T>& v)
+	{
+		return (v.x > v.y) ? ((v.x > v.z) ? 0 : 2) : ((v.y > v.z) ? 1 : 2);
+	}
+
+	template<typename T>
+	size_t MinDimension(const Vector3<T>& v)
+	{
+		return (v.x < v.y) ? ((v.x < v.z) ? 0 : 2) : ((v.y < v.z) ? 1 : 2);
+	}
+
+	template<typename T>
+	Vector3<T> Min(const Vector3<T> &lhs, const Vector3<T> &rhs)
+    {
+		return Vector3<T>(
+			std::min(lhs.x, rhs.x),
+			std::min(lhs.y, rhs.y),
+			std::min(lhs.z, rhs.z)
+			);
+    }
+
+	template<typename T>
+	Vector3<T> Max(const Vector3<T>& lhs, const Vector3<T>& rhs)
+	{
+		return Vector3<T>(
+			std::max(lhs.x, rhs.x),
+			std::max(lhs.y, rhs.y),
+			std::max(lhs.z, rhs.z)
+			);
+	}
+
+	template <typename T>
+	Vector3<T> Permute(const Vector3<T> &v, size_t x, size_t y, size_t z)
+    {
+		return Vector3<T>(v[x], v[y], v[z]);
+    }
+
+	template<typename T>
+	void CoordinateSystem(const Vector3<T> &v1, Vector3<T> *v2, Vector3<T> * v3)
+    {
+		if (std::abs(v1.x) > std::abs(v1.y))
+			*v2 = Vector3<T>(-v1.z, 0, v1.x) /
+			std::sqrt(v1.x * v1.x + v1.z * v1.z);
+		else
+			*v2 = Vector3<T>(-v1.z, 0, v1.x) /
+			std::sqrt(v1.x * v1.x + v1.z * v1.z);
+		*v3 = Cross(v1, v2);
+    }
+
+	template<typename T>
+	std::ostream& operator<<(std::ostream &os, const Vector3<T> &v)
+	{
+		os << fmt::format("[ {}, {}, {} ]", v.x, v.y, v.z);
+		return os;
+	}
+
+	typedef Vector2<float> Vector2f;
+	typedef Vector2<int> Vector2i;
+	typedef Vector3<float> Vector3f;
+	typedef Vector3<int> Vector3i;
+
 	template <typename T>
 	class Point2
 	{
@@ -33,7 +233,7 @@ namespace pbrt
 	{
 	public:
 		Bounds2(const Point2<T>& p1, const Point2<T>& p2);
-		Vector2<T> Diagonal() const { return pMax - pMin; }
+		Vector2<T> Diagonal() const;
 		Point2<T> pMin, pMax;
 		bool operator==(const Bounds2<T>& b) const {
 			return b.pMin == pMin && b.pMax == pMax;
@@ -43,27 +243,12 @@ namespace pbrt
 		}
 	};
 	template <typename T>
-	class Bounds3{};
-	
+	class Bounds3 {};
+
 	typedef Bounds2<float> Bounds2f;
 	typedef Bounds2<int> Bounds2i;
 	typedef Bounds3<float> Bounds3f;
 	typedef Bounds3<int> Bounds3i;
-
-
-	template <typename T>
-	class Vector2
-	{
-	public:
-		T x, y;
-	};
-	template <typename T>
-	class Vector3 {};
-
-	typedef Vector2<float> Vector2f;
-	typedef Vector2<int> Vector2i;
-	typedef Vector3<float> Vector3f;
-	typedef Vector3<int> Vector3i;
 
 	class Bounds2iIterator : public std::forward_iterator_tag
 	{
@@ -74,13 +259,17 @@ namespace pbrt
 		bool operator!= (const Bounds2iIterator &bi) const;
 		Point2i operator*() const;
 	};
-	inline Bounds2iIterator begin(const Bounds2i& b) {}
-	inline Bounds2iIterator end(const Bounds2i& e) {}
+	inline Bounds2iIterator begin(const Bounds2i& b);
+	inline Bounds2iIterator end(const Bounds2i& e);
 
 	template <typename T>
 	class Normal2{};
 	template <typename T>
-	class Normal3{};
+	class Normal3
+	{
+	public:
+		T x, y, z;
+	};
 
 	typedef Normal3<float> Normal3f;
 

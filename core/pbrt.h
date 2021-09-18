@@ -4,11 +4,20 @@
 #include <iostream>
 #include <fmt/core.h>
 #include <string>
+#include <limits>
 #include <vector>
 #include <memory>
 
 namespace pbrt
 {
+#ifdef _MSC_VER
+	constexpr float MaxFloat = std::numeric_limits<float>::max();
+	constexpr float Infinity = std::numeric_limits<float>::infinity();
+#else
+	static PBRT_CONSTEXPR Float MaxFloat = std::numeric_limits<Float>::max();
+	static PBRT_CONSTEXPR Float Infinity = std::numeric_limits<Float>::infinity();
+#endif
+
 	struct Options {};
 
 	// Forward
@@ -35,6 +44,7 @@ namespace pbrt
 	class VisibilityTester;
 	struct Interaction;
 	class SurfaceInteraction;
+	class Medium;
 
 	// geometry
 	template <typename T>

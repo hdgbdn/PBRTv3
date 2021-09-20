@@ -11,8 +11,9 @@
 namespace pbrt
 {
 #ifdef _MSC_VER
-	constexpr float MaxFloat = std::numeric_limits<float>::max();
-	constexpr float Infinity = std::numeric_limits<float>::infinity();
+	static constexpr float MaxFloat = std::numeric_limits<float>::max();
+	static constexpr float Infinity = std::numeric_limits<float>::infinity();
+	static constexpr float Pi = 3.14159265358979323846f;
 #else
 	static PBRT_CONSTEXPR Float MaxFloat = std::numeric_limits<Float>::max();
 	static PBRT_CONSTEXPR Float Infinity = std::numeric_limits<Float>::infinity();
@@ -61,6 +62,10 @@ namespace pbrt
 	class RayDifferential;
 	template <typename T>
 	class Bounds2;
+
+	inline float Radians(float deg) { return (Pi / 180) * deg; }
+
+	inline float Degrees(float rad) { return (180 / Pi) * rad; }
 }
 
 #endif

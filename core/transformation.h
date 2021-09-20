@@ -1,5 +1,6 @@
 #ifndef PBRT_CORE_TRANSFORMATION_H
 #define PBRT_CORE_TRANSFORMATION_H
+#include "geometry.h"
 #include "pbrt.h"
 
 namespace pbrt
@@ -67,12 +68,49 @@ namespace pbrt
 
         float m[4][4];
     };
+
+    Matrix4x4 Inverse(const Matrix4x4& m);
+    Matrix4x4 Transpose(const Matrix4x4& m);
+
 	class Transform
 	{
+        friend Transform Inverse(const Transform& t);
+        friend Transform Transpose(const Transform& t);
 	public:
-        Transform(): m(), mInv() {}
+        Transform() = default;
+        Transform(const float mat[4][4]);
+        Transform(const Matrix4x4& m, const Matrix4x4& mInv);
+        bool HasScale()const;
+        template<typename T>
+        Vector3<T> operator()(const Vector3<T>& v) const;
+        bool operator==(const Transform& t) const { return m == t.m && mInv == t.mInv; }
+        bool operator!=(const Transform& t) const { return m != t.m || mInv != t.mInv; }
 	private:
         Matrix4x4 m, mInv;
 	};
+
+    template <typename T>
+    Vector3<T> Transform::operator()(const Vector3<T>& v) const
+    {
+        T x = v.x, y = v.y, z = v.z;
+        return Vector3<T>(
+            m.m[0][0] * x + m.m[0][1] * y + m.m[0][2] * z,
+            m.m[1][0] * x + m.m[1][1] * y + m.m[1][2] * z,
+            m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z);
+    }
+
+
+    Transform Inverse(const Transform& t);
+    Transform Transpose(const Transform& t);
+    Transform Translate(const Vector3f& delta);
+    Transform Translate(float x, float y, float z);
+    Transform Scale(float x, float y, float z);
+    Transform Scale(const Vector3f& delta);
+    Transform RotateX(float theta);
+    Transform RotateY(float theta);
+    Transform RotateZ(float theta);
+    Transform Rotate(float theta, const Vector3f& axis);
+    Transform LookAt(const Point3f& pos, const Point3f& look,
+        const Vector3f& up);
 }
 #endif

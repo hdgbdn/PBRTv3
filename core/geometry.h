@@ -333,6 +333,12 @@ namespace pbrt
 			if (i == 1) return y;
 			return z;
 		}
+		Point3<T>& operator=(const Point3<T>& p) {
+			x = p.x;
+			y = p.y;
+			z = p.z;
+			return *this;
+		}
 
 		Point3<T> operator+(const Vector3<T>& v) const
 		{
@@ -676,7 +682,7 @@ namespace pbrt
 		const T minNum = std::numeric_limits<T>::lowest();
 		const T maxNum = std::numeric_limits<T>::max();
 		Bounds3() : pMin(maxNum), pMax(minNum) {}
-		Bounds3(const Point3<T>& p) : pMin(p), pMax(p) {}
+		explicit Bounds3(const Point3<T>& p) : pMin(p), pMax(p) {}
 		Bounds3(const Point3<T>& p1, const Point3<T>& p2) :
 			pMin(std::min(p1.x, p2.x), std::min(p1.y, p2.y), std::min(p1.z, p2.z)),
 			pMax(std::max(p1.x, p2.x), std::max(p1.y, p2.y), std::max(p1.z, p2.z)) {}
@@ -691,6 +697,11 @@ namespace pbrt
 			assert(i <= 1);
 			if (i == 0) return pMin;
 			return pMax;
+		}
+		Bounds3& operator=(const Bounds3& rhs)
+		{
+			pMin = rhs.pMin; pMax = rhs.pMax;
+			return *this;
 		}
 		Point3<T> Corner(int corner) const
 		{
@@ -740,6 +751,7 @@ namespace pbrt
 		}
 		Point3<T> pMin, pMax;
 	};
+
 
 	template<typename T>
 	Bounds3<T> Union(const Bounds3<T>& b, const Point3<T>& p)

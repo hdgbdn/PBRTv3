@@ -80,10 +80,20 @@ namespace pbrt
         Transform() = default;
         Transform(const float mat[4][4]);
         Transform(const Matrix4x4& m, const Matrix4x4& mInv);
-        bool HasScale()const;
+        bool HasScale() const;
+        bool SwapsHandedness() const;
+        template<typename T>
+        Point3<T> operator()(const Point3<T>& p) const;
+        template<typename T>
+        Point3<T> operator()(const Point3<T>& p, Vector3<T>* error) const;
         template<typename T>
         Vector3<T> operator()(const Vector3<T>& v) const;
-        bool operator==(const Transform& t) const { return m == t.m && mInv == t.mInv; }
+        template<typename T>
+        Normal3<T> operator()(const Normal3<T>& n) const;
+        Bounds3f operator()(const Bounds3f& b) const;
+        Ray operator()(const Ray& r) const;
+        Transform operator*(const Transform& t2) const;
+		bool operator==(const Transform& t) const { return m == t.m && mInv == t.mInv; }
         bool operator!=(const Transform& t) const { return m != t.m || mInv != t.mInv; }
 	private:
         Matrix4x4 m, mInv;
@@ -99,6 +109,60 @@ namespace pbrt
             m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z);
     }
 
+    template <typename T>
+    Point3<T> Transform::operator()(const Point3<T>& p) const
+    {
+        T x = p.x, y = p.y, z = p.z;
+        T xp = m.m[0][0] * x + m.m[0][1] * y + m.m[0][2] * z + m.m[0][3];
+        T yp = m.m[1][0] * x + m.m[1][1] * y + m.m[1][2] * z + m.m[1][3];
+        T zp = m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z + m.m[2][3];
+        T wp = m.m[3][0] * x + m.m[3][1] * y + m.m[3][2] * z + m.m[3][3];
+        if (wp == 1) return Point3<T>(xp, yp, zp);
+        else return Point3<T>(xp, yp, zp) / wp;
+    }
+
+    template <typename T>
+    Normal3<T> Transform::operator()(const Normal3<T>& n) const
+    {
+        T x = n.x, y = n.y, z = n.z;
+        return Normal3<T>(
+            mInv.m[0][0] * x + mInv.m[1][0] * y + mInv.m[2][0] * z,
+            mInv.m[0][1] * x + mInv.m[1][1] * y + mInv.m[2][1] * z,
+            mInv.m[0][2] * x + mInv.m[1][2] * y + mInv.m[2][2] * z
+            );
+    }
+
+    inline Ray Transform::operator()(const Ray& r) const
+    {
+        Vector3f oError;
+        Point3f o = (*this)(r.o, &oError);
+        Vector3f d = (*this)(r.d);
+        //TODO Offset ray origin to edge of error bounds and compute tMax
+        float tMax = 0;
+        return Ray(o, d, tMax, r.time, r.medium);
+    }
+
+    inline Bounds3f Transform::operator()(const Bounds3f& b) const
+    {
+        const Transform& M = *this;
+        Bounds3f ret(M(Point3f(b.pMin.x, b.pMin.y, b.pMin.z)));
+        ret = Union(ret, M(Point3f(b.pMax.x, b.pMin.y, b.pMin.z)));
+        ret = Union(ret, M(Point3f(b.pMin.x, b.pMax.y, b.pMin.z)));
+        ret = Union(ret, M(Point3f(b.pMin.x, b.pMin.y, b.pMax.z)));
+        ret = Union(ret, M(Point3f(b.pMin.x, b.pMax.y, b.pMax.z)));
+        ret = Union(ret, M(Point3f(b.pMax.x, b.pMax.y, b.pMin.z)));
+        ret = Union(ret, M(Point3f(b.pMax.x, b.pMin.y, b.pMax.z)));
+        ret = Union(ret, M(Point3f(b.pMax.x, b.pMax.y, b.pMax.z)));
+        return ret;
+    }
+
+    inline Transform Transform::operator*(const Transform& t2) const
+    {
+        return Transform(
+            Matrix4x4::Mul(m, t2.m),
+            Matrix4x4::Mul(t2.mInv, mInv));
+    }
+
 
     Transform Inverse(const Transform& t);
     Transform Transpose(const Transform& t);
@@ -112,5 +176,6 @@ namespace pbrt
     Transform Rotate(float theta, const Vector3f& axis);
     Transform LookAt(const Point3f& pos, const Point3f& look,
         const Vector3f& up);
+
 }
 #endif

@@ -108,6 +108,14 @@ namespace pbrt
 			(lc2 < .999f || lc2 > 1.001f);
 	}
 
+	bool Transform::SwapsHandedness() const
+	{
+		float det = m.m[0][0] * (m.m[1][1] * m.m[2][2] - m.m[1][2] * m.m[2][1]) -
+			m.m[0][1] * (m.m[1][0] * m.m[2][2] - m.m[1][2] * m.m[2][0]) +
+			m.m[0][2] * (m.m[1][0] * m.m[2][1] - m.m[1][1] * m.m[2][0]);
+		return det < 0;
+	}
+
 
 	Transform Transpose(const Transform& t)
 	{

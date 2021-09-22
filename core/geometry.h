@@ -181,7 +181,37 @@ namespace pbrt
 	}
 
 	template<typename T>
+	Vector3<T> Cross(const Vector3<T>& lhs, const Normal3<T>& rhs)
+	{
+		double v1x = lhs.x, v1y = lhs.y, v1z = lhs.z;
+		double v2x = rhs.x, v2y = rhs.y, v2z = rhs.z;
+		return Vector3<T>(
+			(v1y * v2z) - (v1z * v2y),
+			(v1z * v2x) - (v1x * v2z),
+			(v1x * v2y) - (v1y * v2x)
+			);
+	}
+
+	template<typename T>
+	Vector3<T> Cross(const Normal3<T>& lhs, const Vector3<T>& rhs)
+	{
+		double v1x = lhs.x, v1y = lhs.y, v1z = lhs.z;
+		double v2x = rhs.x, v2y = rhs.y, v2z = rhs.z;
+		return Vector3<T>(
+			(v1y * v2z) - (v1z * v2y),
+			(v1z * v2x) - (v1x * v2z),
+			(v1x * v2y) - (v1y * v2x)
+			);
+	}
+
+	template<typename T>
 	Vector3<T> Normalize(const Vector3<T>& v)
+	{
+		return v / v.Length();
+	}
+
+	template<typename T>
+	Normal3<T> Normalize(const Normal3<T>& v)
 	{
 		return v / v.Length();
 	}
@@ -477,7 +507,7 @@ namespace pbrt
 	class Normal3
 	{
 	public:
-		Normal3<T>() = default;
+		Normal3<T>(): x(0), y(0), z(0) {}
 		Normal3<T>(T xx, T yy, T zz) : x(xx), y(yy), z(zz)
 		{
 			assert(!HasNaNs());
@@ -545,6 +575,14 @@ namespace pbrt
 			x /= f; y /= f; z /= f;
 			return *this;
 		}
+		bool operator==(const Normal3<T>& rhs) const
+		{
+			return (rhs.x == x) || (rhs.y == y) || (rhs.z == z);
+		}
+		bool operator!=(const Normal3<T>& rhs) const
+		{
+			return (rhs.x != x) || (rhs.y != y) || (rhs.z != z);
+		}
 		float LengthSquared() const
 		{
 			return x * x + y * y + z * z;
@@ -601,6 +639,25 @@ namespace pbrt
 	{
 		return (Dot(n, v) < 0.f) ? -n : n;
 	}
+
+	template<typename T>
+	Normal3<T> Faceforward(const Vector3<T>& v, const Normal3<T>& n)
+	{
+		return (Dot(v, n) < 0.f) ? -v : v;
+	}
+
+	template<typename T>
+	Normal3<T> Faceforward(const Normal3<T>& n1, const Normal3<T>& n2)
+	{
+		return (Dot(n1, n2) < 0.f) ? -n1 : n1;
+	}
+
+	template<typename T>
+	Normal3<T> Faceforward(const Vector3<T>& v1, const Vector3<T>& v2)
+	{
+		return (Dot(v1, v2) < 0.f) ? -v1 : v1;
+	}
+
 
 	using Normal3f = Normal3<float>;
 

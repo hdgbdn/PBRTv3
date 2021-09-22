@@ -45,7 +45,9 @@ namespace pbrt
 	class VisibilityTester;
 	struct Interaction;
 	class SurfaceInteraction;
+	class MediumInteraction;
 	class Medium;
+	class MediumInterface;
 
 	// geometry
 	template <typename T>
@@ -62,6 +64,9 @@ namespace pbrt
 	class RayDifferential;
 	template <typename T>
 	class Bounds2;
+
+	// shapes
+	class Shape;
 
 	inline float Radians(float deg) { return (Pi / 180) * deg; }
 

@@ -2,6 +2,7 @@
 #define PBRT_CORE_TRANSFORMATION_H
 #include "geometry.h"
 #include "pbrt.h"
+#include "interaction.h"
 
 namespace pbrt
 {
@@ -92,6 +93,7 @@ namespace pbrt
         Normal3<T> operator()(const Normal3<T>& n) const;
         Bounds3f operator()(const Bounds3f& b) const;
         Ray operator()(const Ray& r) const;
+        SurfaceInteraction operator()(const SurfaceInteraction& si) const;
         Transform operator*(const Transform& t2) const;
 		bool operator==(const Transform& t) const { return m == t.m && mInv == t.mInv; }
         bool operator!=(const Transform& t) const { return m != t.m || mInv != t.mInv; }
@@ -155,6 +157,15 @@ namespace pbrt
         ret = Union(ret, M(Point3f(b.pMax.x, b.pMax.y, b.pMax.z)));
         return ret;
     }
+
+    inline SurfaceInteraction Transform::operator()(const SurfaceInteraction& si) const
+    {
+        SurfaceInteraction ret;
+        //TODO Transform p and pError in SurfaceInteraction
+        //TODO Transform remaining members of SurfaceInteraction
+        return ret;
+    }
+
 
     inline Transform Transform::operator*(const Transform& t2) const
     {

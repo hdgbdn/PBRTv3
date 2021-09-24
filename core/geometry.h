@@ -743,6 +743,9 @@ namespace pbrt
 		Bounds3(const Point3<T>& p1, const Point3<T>& p2) :
 			pMin(std::min(p1.x, p2.x), std::min(p1.y, p2.y), std::min(p1.z, p2.z)),
 			pMax(std::max(p1.x, p2.x), std::max(p1.y, p2.y), std::max(p1.z, p2.z)) {}
+		bool IntersectP(const Ray& ray, float* hitt0, float* hitt1) const;
+		bool IntersectP(const Ray& ray, const Vector3f& invDir,
+			const int dirIsNeg[3]) const;
 		const Point3<T>& operator[](size_t i) const
 		{
 			assert(i <= 1);
@@ -809,6 +812,46 @@ namespace pbrt
 		Point3<T> pMin, pMax;
 	};
 
+	template <typename T>
+	bool Bounds3<T>::IntersectP(const Ray& ray, float* hitt0, float* hitt1) const
+	{
+		float t0 = 0, t1 = ray.tMax;
+		for(int i = 0; i < 3; ++i)
+		{
+			float invRayDir = 1 / ray.d[i];
+			float tNear = (pMin.x - ray.o[i]) * invRayDir;
+			float tFar  = (pMax.x - ray.o[i]) * invRayDir;
+			if (tNear > tFar) std::swap(tNear, tFar);
+			// TODO Update tFar to ensure robust ray–bounds intersection
+			t0 = tNear > t0 ? tNear : t0;
+			t1 = tFar < t1 ? tFar : t1;
+			if (t0 > t1) return false;
+		}
+		if (nullptr != hitt0) *hitt0 = t0;
+		if (nullptr != hitt1) *hitt1 = t1;
+		return true;
+	}
+
+	template <typename T>
+	bool Bounds3<T>::IntersectP(const Ray& ray, const Vector3f& invDir, const int dirIsNeg[3]) const
+	{
+		const Bounds3<float>& bounds = *this;
+		float tMin = (bounds[dirIsNeg[0]].x - ray.o.x) * invDir.x;
+		float tMax = (bounds[1 - dirIsNeg[0]].x - ray.o.x) * invDir.x;
+		float tyMin = (bounds[dirIsNeg[1]].y - ray.o.y) * invDir.y;
+		float tyMax = (bounds[1 - dirIsNeg[1]].y - ray.o.y) * invDir.y;
+		// TODO Update tMax and tyMax to ensure robust bounds intersectio
+		if (tMin > tyMax || tyMin > tMax) return false;
+		if (tyMin > tMin) tMin = tyMin;
+		if (tyMax < tMax) tMax = tyMax;
+
+		float tzMin = (bounds[dirIsNeg[2]].z - ray.o.z) * invDir.z;
+		float tzMax = (bounds[1 - dirIsNeg[2]].z - ray.o.z) * invDir.z;
+		if (tzMin > tMax || tzMax < tMin) return false;
+		if (tzMin > tMin) tMin = tzMin;
+		if (tzMax < tMax) tMax = tzMax;
+		return (tMin < ray.tMax) && (tMax > 0);
+	}
 
 	template<typename T>
 	Bounds3<T> Union(const Bounds3<T>& b, const Point3<T>& p)

@@ -22,6 +22,7 @@ namespace pbrt
 	struct Options {};
 
 	// Forward
+	class Transform;
 	class Scene;
 	class Ray;
 	class RayDifferential;

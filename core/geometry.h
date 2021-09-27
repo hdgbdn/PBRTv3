@@ -112,6 +112,10 @@ namespace pbrt
 			x += rhs.x; y += rhs.y; z += rhs.z;
 			return *this;
 		}
+		Vector3<T> operator-() const
+		{
+			return Vector3<T>(-x, -y, -z);
+		}
 		Vector3<T> operator-(const Vector3<T>& rhs)
 		{
 			return Vector3<T>(x - rhs.x, y - rhs.y, z - rhs.z);

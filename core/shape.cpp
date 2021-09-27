@@ -13,24 +13,11 @@ namespace pbrt
 		return (*ObjectToWorld)(ObjectBound());
 	}
 
-	/// <summary>
-	/// Interface for ray & shape intersection
-	/// </summary>
-	/// <param name="ray">
-	///	Incoming ray, the intersections occur after ray.tMax will be ignored
-	/// </param>
-	/// <param name="tHit">
-	/// The closest parametric distance
-	/// </param>
-	/// <param name="isect">
-	/// Information about an intersection
-	/// </param>
-	/// <param name="testAlphaTexture"></param>
-	/// <returns></returns>
-	bool Shape::Intersect(const Ray& ray, float* tHit, SurfaceInteraction* isect, bool testAlphaTexture) const
+	bool Shape::IntersectP(const Ray& ray, bool testAlphaTexture) const
 	{
-		
+		float tHit = ray.tMax;
+		SurfaceInteraction isect;
+		return Intersect(ray, &tHit, &isect, testAlphaTexture);
 	}
-
 
 }

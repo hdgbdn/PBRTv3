@@ -36,7 +36,7 @@ namespace pbrt
 			const Point2f& uv, const Vector3f& wo,
 			const Vector3f& dpdu, const Vector3f& dpdv,
 			const Normal3f& dndu, const Normal3f& dndv,
-			float time, const std::shared_ptr<Shape> shape);
+			float time, const Shape* shape);
 		void SetShadingGeometry(const Vector3f& dpdus, 
 			const Vector3f& dpdvs, const Normal3f& dndus,
 			const Normal3f& dndvs, bool orientationIsAuthoritative);
@@ -48,7 +48,7 @@ namespace pbrt
 		Point2f uv;
 		Vector3f dpdu, dpdv;
 		Normal3f dndu, dndv;
-		const std::shared_ptr<Shape> shape;
+		const Shape* shape;
 		struct {
 			Normal3f n;
 			Vector3f dpdu, dpdv;

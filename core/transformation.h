@@ -93,6 +93,8 @@ namespace pbrt
         Normal3<T> operator()(const Normal3<T>& n) const;
         Bounds3f operator()(const Bounds3f& b) const;
         Ray operator()(const Ray& r) const;
+        inline Ray operator()(const Ray& r, Vector3f* oError,
+            Vector3f* dError) const;
         SurfaceInteraction operator()(const SurfaceInteraction& si) const;
         Transform operator*(const Transform& t2) const;
 		bool operator==(const Transform& t) const { return m == t.m && mInv == t.mInv; }

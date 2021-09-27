@@ -49,6 +49,7 @@ namespace pbrt
 	class MediumInteraction;
 	class Medium;
 	class MediumInterface;
+	class EFloat;
 
 	// geometry
 	template <typename T>
@@ -72,6 +73,16 @@ namespace pbrt
 	inline float Radians(float deg) { return (Pi / 180) * deg; }
 
 	inline float Degrees(float rad) { return (180 / Pi) * rad; }
+	template <typename T, typename U, typename V>
+	inline T Clamp(T val, U low, V high) {
+		if (val < low)
+			return low;
+		else if (val > high)
+			return high;
+		else
+			return val;
+	}
+	inline bool Quadratic(float a, float b, float c, float* t0, float* t1);
 }
 
 #endif

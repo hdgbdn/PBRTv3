@@ -13,8 +13,12 @@ file(GLOB INTEGRATOR_SOURCE
     integrators/*.cpp
 )
 
-add_executable(pbrt3 "pbrt.cpp" ${CORE_SOURCE} ${INTEGRATOR_SOURCE})
-target_include_directories(pbrt3 PUBLIC core integrators)
+file(GLOB SHAPE_SOURCE
+    shapes/*.cpp
+)
+
+add_executable(pbrt3 "pbrt.cpp" ${CORE_SOURCE} ${INTEGRATOR_SOURCE} ${SHAPE_SOURCE})
+target_include_directories(pbrt3 PUBLIC core integrators shapes)
 target_link_libraries(pbrt3 PUBLIC fmt)
 
 # test

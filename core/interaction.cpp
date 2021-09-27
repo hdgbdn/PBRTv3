@@ -6,7 +6,7 @@ namespace pbrt
 		const Point2f& uv, const Vector3f& wo,
 		const Vector3f& dpdu, const Vector3f& dpdv,
 		const Normal3f& dndu, const Normal3f& dndv,
-		float time, const std::shared_ptr<Shape> shape):
+		float time, const Shape* shape):
 		Interaction(p, Normal3f(Normalize(Cross(dpdu, dpdv))),
 			pError, wo, time, nullptr), uv(uv),
 	dpdu(dpdu),

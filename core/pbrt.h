@@ -51,6 +51,9 @@ namespace pbrt
 	class MediumInterface;
 	class EFloat;
 
+	template <typename T>
+	class Texture;
+
 	// geometry
 	template <typename T>
 	class Vector2;

@@ -9,8 +9,8 @@ namespace pbrt
 	class Disk : public Shape
 	{
 	public:
-		Disk(const std::shared_ptr<Transform> ObjectToWorld,
-			const std::shared_ptr<Transform> WorldToObject, bool reverseOrientation,
+		Disk(const std::shared_ptr<Transform>& ObjectToWorld,
+			const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation,
 			float height, float radius, float innerRadius, float phiMax);
 	bool Intersect(const Ray& ray, float* tHit, SurfaceInteraction* isect, bool testAlphaTexture) const override;
 	bool IntersectP(const Ray& ray, bool testAlphaTexture) const override;

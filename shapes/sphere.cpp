@@ -3,7 +3,7 @@
 
 namespace pbrt
 {
-	Sphere::Sphere(const std::shared_ptr<Transform> ObjectToWorld, const std::shared_ptr<Transform> WorldToObject, bool reverseOrientation, float radius, float zMin, float zMax, float phiMax)
+	Sphere::Sphere(const std::shared_ptr<Transform>& ObjectToWorld, const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation, float radius, float zMin, float zMax, float phiMax)
 		: Shape(ObjectToWorld, WorldToObject, reverseOrientation),
 		radius(radius), zMin(Clamp(std::min(zMin, zMax), -radius, radius)),
 		zMax(Clamp(std::max(zMin, zMax), -radius, radius)),

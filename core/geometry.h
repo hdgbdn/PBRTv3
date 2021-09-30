@@ -325,6 +325,25 @@ namespace pbrt
 		}
 		T x, y;
 	};
+
+	template <typename T>
+	Vector2<T> operator-(const Point2<T>& lhs, const Point2<T>& rhs)
+	{
+		return Vector2<T>(lhs.x - rhs.x, lhs.y - rhs.y);
+	}
+
+	template <typename T>
+	Point2<T> operator+(const Point2<T>& lhs, const Point2<T>& rhs)
+	{
+		return Point2<T>(lhs.x + rhs.x, lhs.y + rhs.y);
+	}
+
+	template <typename T, typename U>
+	Point2<T> operator*(U f, const Point2<T>& rhs)
+	{
+		return Point2<T>(f * rhs.x, f * rhs.y);
+	}
+
 	template <typename T>
 	class Point3
 	{
@@ -601,6 +620,12 @@ namespace pbrt
 		}
 		T x, y, z;
 	};
+
+	template <typename T, typename U>
+	Normal3<T> operator*(U f, const Normal3<T>& n)
+	{
+		return Normal3<T>(f * n.x, f * n.y, f * n.z);
+	}
 
 	template <typename T>
 	T Dot(const Normal3<T>& n1, const Normal3<T>& n2) {

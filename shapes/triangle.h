@@ -33,6 +33,21 @@ namespace pbrt
 		bool IntersectP(const Ray& ray, bool testAlphaTexture) const override;
 		float Area() override;
 	private:
+		void GetUVs(Point2f uv[3]) const
+		{
+			if(mesh->uv)
+			{
+				uv[0] = mesh->uv[v[0]];
+				uv[1] = mesh->uv[v[1]];
+				uv[2] = mesh->uv[v[2]];
+			}
+			else
+			{
+				uv[0] = Point2f(0, 0);
+				uv[1] = Point2f(1, 0);
+				uv[2] = Point2f(1, 1);
+			}
+		}
 		std::shared_ptr<TriangleMesh> mesh;
 		const int* v;
 	};

@@ -1,4 +1,5 @@
 #include "triangle.h"
+#include "texture.h"
 
 namespace pbrt
 {
@@ -87,6 +88,92 @@ namespace pbrt
         p1t.y += Sy * p1t.z;
         p2t.x += Sx * p2t.z;
         p2t.y += Sy * p2t.z;
+
+        float e0 = p0t.x * p1t.y - p0t.y * p1t.x;
+        float e1 = p1t.x * p2t.y - p1t.y * p2t.x;
+        float e2 = p2t.x * p0t.y - p2t.y * p0t.x;
+
+        if ((e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0))
+            return false;
+        float det = e0 + e1 + e2;
+        if (det == 0) return false;
+
+        p0t.z *= Sz;
+        p1t.z *= Sz;
+        p2t.z *= Sz;
+        float tScaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z;
+        if (det < 0 && (tScaled >= 0 || tScaled < ray.tMax * det))
+            return false;
+        else if (det > 0 && (tScaled <= 0 || tScaled > ray.tMax * det))
+            return false;
+        float invDet = 1 / det;
+        float b0 = e0 * invDet;
+        float b1 = e1 * invDet;
+        float b2 = e2 * invDet;
+        float t = tScaled * invDet;
+
+        Point2f uv[3];
+        Vector3f dpdu, dpdv;
+        GetUVs(uv);
+        Vector2f duv02 = uv[0] - uv[2], duv12 = uv[1] - uv[2];
+        Vector3f dp02 = p0 - p2, dp12 = p1 - p2;
+        float determinant = duv02[0] * duv12[1] - duv02[1] * duv12[0];
+        if (determinant == 0)
+        {
+            CoordinateSystem(Normalize(Cross(p2 - p0, p1 - p0)), &dpdu, &dpdv);
+        }
+        else
+        {
+            float invdet = 1 / determinant;
+            dpdu = (duv12[1] * dp02 - duv02[1] * dp12) * invdet;
+            dpdv = (-duv12[0] * dp02 + duv02[0] * dp12) * invdet;
+        }
+        Point3f pHit = b0 * p0 + b1 * p1 + b2 * p2;
+        Point2f uvHit = b0 * uv[0] + b1 * uv[1] + b2 * uv[2];
+
+        if(testAlphaTexture && mesh->alphaMask)
+        {
+            SurfaceInteraction isectLocal(pHit, Vector3f(0, 0, 0), uvHit,
+                Vector3f(0, 0, 0), dpdu, dpdv, Normal3f(0, 0, 0),
+                Normal3f(0, 0, 0), ray.time, this);
+            if (mesh->alphaMask->Evaluate(isectLocal) == 0) return false;
+        }
+        Vector3f pError;
+        *isect = SurfaceInteraction(pHit, pError, uvHit,
+            -ray.d, dpdu, dpdv, Normal3f(0, 0, 0),
+            Normal3f(0, 0, 0), ray.time, this);
+        isect->n = isect->shading.n = Normal3f(Normalize(Cross(dp02, dp12)));
+        if(mesh->n || mesh->s)
+        {
+            Normal3f ns;
+            if (mesh->n) ns = Normalize(b0 * mesh->n[v[0]] +
+                b1 * mesh->n[v[1]] + b2 * mesh->n[v[2]]);
+            else ns = isect->n;
+            Vector3f ss;
+            if (mesh->s) ss = Normalize(b0 * mesh->s[v[0]] +
+                b1 * mesh->s[v[1]] + b2 * mesh->s[v[2]]);
+            else ss = Normalize(isect->dpdu);
+            Vector3f ts = Cross(ss, ns);
+            if(ts.LengthSquared() > 0.f)
+            {
+                ts = Normalize(Cross(ns, ss));
+                ss = Cross(ts, ns);
+            }
+            else
+            {
+                CoordinateSystem(static_cast<Vector3f>(ns), &ss, &ts);
+            }
+        }
+        if (mesh->n)
+            isect->n = Faceforward(isect->n, isect->shading.n);
+        else if (reverseOrientation ^ transformSwapsHandedness)
+            isect->n = isect->shading.n = -isect->n;
+    }
+
+    float Triangle::Area()
+    {
+        Point3f p0 = mesh->p[v[0]], p1 = mesh->p[v[1]], p2 = mesh->p[v[2]];
+        return 0.5 * Cross(p1 - p0, p2 - p0).Length();
     }
 
 

@@ -4,6 +4,14 @@
 namespace pbrt
 {
 	enum class TransportMode { Radiance, Importance };
+	class Material
+	{
+	public:
+		virtual void ComputeScatteringFunctions(SurfaceInteraction* si,
+			MemoryArena& arena,
+			TransportMode mode,
+			bool allowMultipleLobes) const = 0;
+	};
 }
 
 #endif

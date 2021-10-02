@@ -42,13 +42,18 @@ namespace pbrt
 #else
 	typedef RGBSpectrum Spectrum;
 #endif
+	class Primitive;
 	class Light;
+	class AreaLight;
+	class Material;
 	class VisibilityTester;
 	struct Interaction;
 	class SurfaceInteraction;
 	class MediumInteraction;
 	class Medium;
 	class MediumInterface;
+	class BSDF;
+	class BSSRDF;
 	class EFloat;
 
 	template <typename T>

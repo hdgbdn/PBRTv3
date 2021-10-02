@@ -56,6 +56,7 @@ namespace pbrt
 		} shading;
 		BSDF* bsdf = nullptr;
 		BSSRDF* bssrdf = nullptr;
+		const Primitive* primitive = nullptr;
 	};
 }
 

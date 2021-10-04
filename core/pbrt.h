@@ -23,6 +23,7 @@ namespace pbrt
 
 	// Forward
 	class Transform;
+	class AnimatedTransform;
 	class Scene;
 	class Ray;
 	class RayDifferential;

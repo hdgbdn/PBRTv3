@@ -83,6 +83,14 @@ namespace pbrt
         Transform(const Matrix4x4& m, const Matrix4x4& mInv);
         bool HasScale() const;
         bool SwapsHandedness() const;
+        bool IsIdentity() const {
+            return (m.m[0][0] == 1.f && m.m[0][1] == 0.f && m.m[0][2] == 0.f &&
+                m.m[0][3] == 0.f && m.m[1][0] == 0.f && m.m[1][1] == 1.f &&
+                m.m[1][2] == 0.f && m.m[1][3] == 0.f && m.m[2][0] == 0.f &&
+                m.m[2][1] == 0.f && m.m[2][2] == 1.f && m.m[2][3] == 0.f &&
+                m.m[3][0] == 0.f && m.m[3][1] == 0.f && m.m[3][2] == 0.f &&
+                m.m[3][3] == 1.f);
+        }
         template<typename T>
         Point3<T> operator()(const Point3<T>& p) const;
         template<typename T>
@@ -176,6 +184,12 @@ namespace pbrt
             Matrix4x4::Mul(t2.mInv, mInv));
     }
 
+    class AnimatedTransform : public Transform
+    {
+    public:
+        Bounds3f MotionBounds(const Bounds3f& b) const;
+        void Interpolate(float time, Transform* t) const;
+    };
 
     Transform Inverse(const Transform& t);
     Transform Transpose(const Transform& t);

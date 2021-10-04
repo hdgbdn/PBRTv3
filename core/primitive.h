@@ -11,6 +11,7 @@ namespace pbrt
 	class Primitive
 	{
 	public:
+		virtual ~Primitive() = default;
 		virtual Bounds3f WorldBound() const = 0;
 		virtual bool Intersect(const Ray& r, SurfaceInteraction* isect) const = 0;
 		virtual bool IntersectP(const Ray&);
@@ -40,6 +41,37 @@ namespace pbrt
 		std::shared_ptr<Material> material;
 		std::shared_ptr<AreaLight> areaLight;
 		MediumInterface mediumInterface;
+	};
+
+	class TransformedPrimitive : public Primitive
+	{
+	public:
+		TransformedPrimitive(std::shared_ptr<Primitive>& primitive,
+			const AnimatedTransform& PrimitiveToWorld);
+		Bounds3f WorldBound() const override
+		{
+			return PrimitiveToWorld.MotionBounds(primitive->WorldBound());
+		}
+		bool Intersect(const Ray& r, SurfaceInteraction* isect) const override;
+		bool IntersectP(const Ray&) override;
+		const AreaLight* GetAreaLight() const override { return nullptr; }
+		const Material* GetMaterial() const override { return nullptr; }
+		void ComputeScatteringFunctions(SurfaceInteraction* isect, MemoryArena& arena, TransportMode mode, bool allowMultipleLobes) const override
+		{
+			// TODO fatal error;
+		}
+
+	private:
+		std::shared_ptr<Primitive> primitive;
+		const AnimatedTransform PrimitiveToWorld;
+	};
+
+	class Aggregate : public Primitive
+	{
+	public:
+		const AreaLight* GetAreaLight() const override;
+		const Material* GetMaterial() const override;
+		void ComputeScatteringFunctions(SurfaceInteraction* isect, MemoryArena& arena, TransportMode mode, bool allowMultipleLobes) const override;
 	};
 }
 

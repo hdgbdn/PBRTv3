@@ -47,4 +47,35 @@ namespace pbrt
 			material->ComputeScatteringFunctions(isect, arena, mode, allowMultipleLobes);
 	}
 
+	TransformedPrimitive::TransformedPrimitive(std::shared_ptr<Primitive>& primitive, const AnimatedTransform& PrimitiveToWorld)
+		:primitive(primitive), PrimitiveToWorld(PrimitiveToWorld) {}
+
+	bool TransformedPrimitive::Intersect(const Ray& r, SurfaceInteraction* isect) const
+	{
+		Transform InterpolatedPrimToWorld;
+		PrimitiveToWorld.Interpolate(r.time, &InterpolatedPrimToWorld);
+		Ray ray = Inverse(InterpolatedPrimToWorld)(r);
+		if (!primitive->Intersect(r, isect)) return false;
+		r.tMax = ray.tMax;
+		if (!InterpolatedPrimToWorld.IsIdentity())
+			*isect = InterpolatedPrimToWorld(*isect);
+		return true;
+	}
+
+	const AreaLight* Aggregate::GetAreaLight() const {
+		// TODO fatal error;
+		return nullptr;
+	}
+
+	const Material* Aggregate::GetMaterial() const {
+		// TODO fatal error;
+		return nullptr;
+	}
+
+	void Aggregate::ComputeScatteringFunctions(SurfaceInteraction* isect,
+		MemoryArena& arena,
+		TransportMode mode,
+		bool allowMultipleLobes) const {
+		// TODO FATAL
+	}
 }

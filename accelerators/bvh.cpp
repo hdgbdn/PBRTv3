@@ -182,19 +182,7 @@ namespace pbrt
 							}
 						}
 						float leafCost = nPrimitives;
-						if(nPrimitives > maxPrimsInNode|| minCost < leafCost)
-						{
-							auto midIter = std::partition(primitiveInfo.begin() + start,
-								primitiveInfo.begin() + end,
-								[=](const std::vector<BVHPrimitiveInfo>::iterator& iter)
-								{
-									int b = nBuckets * centroidBounds.Offset(iter->centroid)[dim];
-									if (b == nBuckets) b = nBuckets - 1;
-									return b <= minCostSplitBucket;
-								});
-							mid = midIter - primitiveInfo.begin();
-						}
-						else
+						if (nPrimitives > maxPrimsInNode && minCost < leafCost)
 						{
 							int firstPrimOffset = orderedPrims.size();
 							for (int i = start; i < end; ++i)
@@ -204,6 +192,20 @@ namespace pbrt
 							}
 							node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
 							return node;
+							
+						}
+						else
+						{
+							auto midIter = std::partition(primitiveInfo.begin() + start,
+								primitiveInfo.begin() + end,
+								[=](const std::vector<BVHPrimitiveInfo>::iterator& iter)
+								{
+									int b = nBuckets * centroidBounds.Offset(iter->centroid)[
+										dim];
+									if (b == nBuckets) b = nBuckets - 1;
+									return b <= minCostSplitBucket;
+								});
+							mid = midIter - primitiveInfo.begin();
 						}
 					}
 				}

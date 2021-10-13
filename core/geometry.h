@@ -833,6 +833,34 @@ namespace pbrt
 			if (pMax.z > pMin.z) o.z /= pMax.z - pMin.z;
 			return o;
 		}
+		Bounds3f& Union(const Bounds3<T>& b)
+		{
+			pMin = Point3<T>(
+				std::min(pMin.x, b.pMin.x),
+				std::min(pMin.y, b.pMin.y),
+				std::min(pMin.z, b.pMin.z)
+				);
+			pmax = Point3<T>(
+				std::max(pMax.x, b.pMax.x),
+				std::max(pMax.y, b.pMax.y),
+				std::max(pMax.z, b.pMax.z)
+				);
+			return *this;
+		}
+		Bounds3f& Union(const Point3<T>& p)
+		{
+			pMin = Point3<T>(
+				std::min(pMin.x, p.x),
+				std::min(pMin.y, p.y),
+				std::min(pMin.z, p.z)
+				);
+			pmax = Point3<T>(
+				std::max(pMax.x, p.x),
+				std::max(pMax.y, p.y),
+				std::max(pMax.z, p.z)
+				);
+			return *this;
+		}
 		void BoundingSphere(Point3<T>* center, float* radius) const
 		{
 			*center = (pMin + pMax) / 2;

@@ -7,6 +7,7 @@
 #include <limits>
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 namespace pbrt
 {

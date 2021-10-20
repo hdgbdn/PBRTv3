@@ -83,6 +83,18 @@ namespace pbrt
 	inline float Radians(float deg) { return (Pi / 180) * deg; }
 
 	inline float Degrees(float rad) { return (180 / Pi) * rad; }
+
+	inline float Log2(float x) {
+		const float invLog2 = 1.442695040888963387004650940071;
+		return std::log(x) * invLog2;
+	}
+
+	inline int Log2Int(uint32_t v) {
+		unsigned long lz = 0;
+		if (_BitScanReverse(&lz, v)) return lz;
+		return 0;
+	}
+
 	template <typename T, typename U, typename V>
 	inline T Clamp(T val, U low, V high) {
 		if (val < low)

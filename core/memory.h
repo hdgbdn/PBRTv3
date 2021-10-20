@@ -8,6 +8,7 @@ namespace pbrt
 	T* AllocAligned(size_t count) {
 		return (T*)AllocAligned(count * sizeof(T));
 	}
+	void FreeAligned(void*);
 	class MemoryArena
 	{
 	public:

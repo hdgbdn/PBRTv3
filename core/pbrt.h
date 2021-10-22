@@ -106,6 +106,7 @@ namespace pbrt
 	}
 	inline bool Quadratic(float a, float b, float c, float* t0, float* t1);
 	inline float Lerp(float t, float v1, float v2) { return (1 - t) * v1 + t * v2; }
+
 }
 
 #endif

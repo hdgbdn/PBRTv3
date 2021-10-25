@@ -214,9 +214,9 @@ namespace pbrt
 				int axis = node->SplitAxis();
 				float tPlane = (node->SplitPos() - r.o[axis]) * invDir[axis];
 				const KdAccelNode* firstChild, * secondChild;
-				int belowFrist = (r.o[axis] < node->SplitPos()) ||
+				bool belowFirst = (r.o[axis] < node->SplitPos()) ||
 					(r.o[axis] == node->SplitPos() && r.d[axis] <= 0);
-				if(belowFrist)
+				if(belowFirst)
 				{
 					firstChild = node + 1;
 					secondChild = &nodes[node->AboveChild()];
@@ -291,9 +291,9 @@ namespace pbrt
 				int axis = node->SplitAxis();
 				float tPlane = (node->SplitPos() - r.o[axis]) * invDir[axis];
 				const KdAccelNode* firstChild, * secondChild;
-				int belowFrist = (r.o[axis] < node->SplitPos()) ||
+				bool belowFirst = (r.o[axis] < node->SplitPos()) ||
 					(r.o[axis] == node->SplitPos() && r.d[axis] <= 0);
-				if (belowFrist)
+				if (belowFirst)
 				{
 					firstChild = node + 1;
 					secondChild = &nodes[node->AboveChild()];

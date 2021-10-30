@@ -46,6 +46,16 @@ namespace pbrt
         return sum / (lambdaEnd - lambdaStart);
     }
 
+    float InterpolateSpectrumSamples(const float* lambda, const float* vals,
+        int n, float l)
+    {
+        if (l <= lambda[0])     return vals[0];
+        if (l >= lambda[n - 1]) return vals[n - 1];
+        int offset = FindInterval(n,
+            [&](int index) { return lambda[index] <= l; });
+        float t = (l - lambda[offset]) / (lambda[offset + 1] - lambda[offset]);
+        return Lerp(t, vals[offset], vals[offset + 1]);
+    }
 
     void SampledSpectrum::Init()
     {
@@ -1088,6 +1098,30 @@ namespace pbrt
         }
 
         return r.Clamp();
+    }
+    RGBSpectrum RGBSpectrum::FromSampled(const float* lambda, const float* v, int n)
+    {
+        if (!SpectrumSamplesSorted(lambda, v, n))
+        {
+            std::vector<float> slambda(&lambda[0], &lambda[n]);
+            std::vector<float> sv(&v[0], &v[n]);
+            SortSpectrumSamples(&slambda[0], &sv[0], n);
+            return FromSampled(&slambda[0], &sv[0], n);
+        }
+        float xyz[3] = { 0,0,0 };
+        for (int i = 0; i < nCIESamples; ++i) {
+            float val = InterpolateSpectrumSamples(lambda, v, n,
+                CIE_lambda[i]);
+            xyz[0] += val * CIE_X[i];
+            xyz[1] += val * CIE_Y[i];
+            xyz[2] += val * CIE_Z[i];
+        }
+        float scale = float(CIE_lambda[nCIESamples - 1] - CIE_lambda[0]) /
+            float(CIE_Y_integral * nCIESamples);
+        xyz[0] *= scale;
+        xyz[1] *= scale;
+        xyz[2] *= scale;
+        return FromXYZ(xyz);
     }
 
 }

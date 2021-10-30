@@ -981,6 +981,32 @@ namespace pbrt
 
 	using Bounds3f = Bounds3<float>;
 	using Bounds3i = Bounds3<int>;
+
+	inline Vector3f SphericalDirection(float sinTheta,
+		float cosTheta, float phi)
+	{
+		return Vector3f(sinTheta * std::cos(phi),
+			sinTheta * std::sin(phi),
+			cosTheta);
+	}
+
+	inline Vector3f SphericalDirection(float sinTheta, float cosTheta,
+		float phi, const Vector3f& x, const Vector3f& y,
+		const Vector3f& z) {
+		return sinTheta * std::cos(phi) * x +
+			sinTheta * std::sin(phi) * y + cosTheta * z;
+	}
+
+	inline float SphericalTheta(const Vector3f& v)
+	{
+		return std::acos(Clamp(v.z, -1, 1));
+	}
+
+	inline float SphericalPhi(const Vector3f& v)
+	{
+		float p = std::atan2(v.y, v.x);
+		return p < 0 ? (p + 2 * Pi) : p;
+	}
 }
 
 #endif

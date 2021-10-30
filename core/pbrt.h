@@ -106,7 +106,20 @@ namespace pbrt
 	}
 	inline bool Quadratic(float a, float b, float c, float* t0, float* t1);
 	inline float Lerp(float t, float v1, float v2) { return (1 - t) * v1 + t * v2; }
-
+	template <typename Predicate> int FindInterval(int size,
+		const Predicate& pred) {
+		int first = 0, len = size;
+		while (len > 0) {
+			int half = len >> 1, middle = first + half;
+			if (pred(middle)) {
+				first = middle + 1;
+				len -= half + 1;
+			}
+			else
+				len = half;
+		}
+		return Clamp(first - 1, 0, size - 2);
+	}
 }
 
 #endif

@@ -9,6 +9,8 @@ namespace pbrt
 	extern void SortSpectrumSamples(float* lambda, float* vals, int n);
 	extern float AverageSpectrumSamples(const float* lambda, const float* vals,
 	                                    int n, float lambdaStart, float lambdaEnd);
+	extern float InterpolateSpectrumSamples(const float* lambda, const float* vals,
+		int n, float l);
 	static const int sampledLambdaStart = 400;
 	static const int sampledLambdaEnd = 700;
 	static const int nSpectralSamples = 60;
@@ -241,7 +243,43 @@ namespace pbrt
 	{
 	public:
 		RGBSpectrum(float v = 0.f) : CoefficientSpectrum<3>(v) {}
+
 		RGBSpectrum(const CoefficientSpectrum<3>& v) : CoefficientSpectrum<3>(v) {}
+
+		static RGBSpectrum FromRGB(const float rgb[3],
+			SpectrumType type = SpectrumType::Reflectance)
+		{
+			RGBSpectrum s;
+			s.c[0] = rgb[0];
+			s.c[1] = rgb[1];
+			s.c[2] = rgb[2];
+			return s;
+		}
+
+		void ToRGB(float* rgb) const
+		{
+			rgb[0] = c[0];
+			rgb[1] = c[1];
+			rgb[2] = c[2];
+		}
+
+		const RGBSpectrum& ToRGBSpectrum() const { return *this; }
+
+		static RGBSpectrum FromXYZ(const float xyz[3],
+			SpectrumType type = SpectrumType::Reflectance)
+		{
+			float rgb[3];
+			XYZToRGB(xyz, rgb);
+			return FromRGB(rgb, type);
+		}
+
+		void ToXYZ(float* xyz) const
+		{
+			return RGBToXYZ(c, xyz);
+		}
+
+		static RGBSpectrum FromSampled(const float* lambda, const float* v,
+			int n);
 	};
 
 	inline Spectrum Lerp(float t, const Spectrum& s1, const Spectrum& s2) {

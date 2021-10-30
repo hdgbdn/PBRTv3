@@ -14,6 +14,7 @@ namespace pbrt
 		std::unique_ptr<FilmTile> GetFilmTile(const Bounds2i& sampleBounds);
 		void MergeFilmTile(std::unique_ptr<FilmTile> tile);
 		void WriteImage(float splatScale = 1);
+		const Point2i fullResolution;
 	};
 
 	class FilmTile

@@ -695,8 +695,8 @@ namespace pbrt
 	public:
 		Ray() : tMax(Infinity), time(0.f), medium(nullptr) {}
 		Ray(const Point3f& o, const Vector3f& d, float tMax = Infinity,
-			float time = 0.f, std::shared_ptr<Medium> medium = nullptr)
-			: o(o), d(d), tMax(tMax), time(time), medium(std::move(medium)) {}
+			float time = 0.f, const Medium* medium = nullptr)
+			: o(o), d(d), tMax(tMax), time(time), medium(medium) {}
 		Point3f operator()(float t) const
 		{
 			return o + t * d;
@@ -705,7 +705,7 @@ namespace pbrt
 		Vector3f d;
 		mutable float tMax;
 		float time;
-		std::shared_ptr<Medium> medium;
+		const Medium* medium;
 	};
 	class RayDifferential : public Ray
 	{
@@ -716,8 +716,8 @@ namespace pbrt
 		RayDifferential(const Ray& r) : Ray(r), hasDifferentials(false),
 			rxOrigin(), ryOrigin(), rxDirection(), ryDirection() {}
 		RayDifferential(const Point3f& o, const Vector3f& d, float tMax = Infinity,
-			float time = 0.f, std::shared_ptr<Medium> medium = nullptr)
-			: Ray(o, d, tMax, time, std::move(medium)), hasDifferentials(false),
+			float time = 0.f, const Medium* medium = nullptr)
+			: Ray(o, d, tMax, time, medium), hasDifferentials(false),
 			rxOrigin(), ryOrigin(), rxDirection(), ryDirection() {}
 		void ScaleDifferentials(float s)
 		{

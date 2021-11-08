@@ -80,6 +80,7 @@ namespace pbrt
 	public:
         Transform() = default;
         Transform(const float mat[4][4]);
+        Transform(const Matrix4x4& m) : m(m), mInv(Inverse(m)) {}
         Transform(const Matrix4x4& m, const Matrix4x4& mInv);
         bool HasScale() const;
         bool SwapsHandedness() const;
@@ -203,6 +204,7 @@ namespace pbrt
     Transform Rotate(float theta, const Vector3f& axis);
     Transform LookAt(const Point3f& pos, const Point3f& look,
         const Vector3f& up);
-
+    Transform Orthographic(float zNear, float zFar);
+    Transform Perspective(float fov, float n, float f);
 }
 #endif

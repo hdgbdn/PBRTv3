@@ -269,4 +269,21 @@ namespace pbrt
 		return Transform(Inverse(cameraToWorld), cameraToWorld);
 	}
 
+	Transform Orthographic(float zNear, float zFar)
+	{
+		return Scale(1, 1, 1 / (zFar - zNear)) *
+			Translate(Vector3f(0, 0, -zNear));
+	}
+
+	Transform Perspective(float fov, float n, float f)
+	{
+		Matrix4x4 persp(1, 0, 0, 0,
+		                0, 1, 0, 0,
+		                0, 0, f / (f - n), -f * n / (f - n),
+		                0, 0, 1, 0);
+		float invTanAng = 1 / std::tan(Radians(fov) / 2);
+		return Scale(invTanAng, invTanAng, 1) * Transform(persp);
+	}
+
+
 }

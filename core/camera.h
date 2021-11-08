@@ -15,7 +15,7 @@ namespace pbrt
 		virtual float GenerateRay(const CameraSample& sample, Ray* ray) const = 0;
 		virtual float GenerateRayDifferential(const CameraSample& sample,
 			RayDifferential* rd) const;
-
+		virtual ~Camera();
 		AnimatedTransform CameraToWorld;
 		const float shutterOpen, shutterClose;
 		Film* film;
@@ -37,6 +37,7 @@ namespace pbrt
 	protected:
 		Transform CameraToScreen, RasterToCamera;
 		Transform ScreenToRaster, RasterToScreen;
+		float lensRadius, focalDistance;
 	};
 
 }

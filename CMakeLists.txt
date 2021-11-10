@@ -21,8 +21,12 @@ file(GLOB SHAPE_SOURCE
     shapes/*.cpp
 )
 
-add_executable(pbrt3 "pbrt.cpp" ${CORE_SOURCE} ${INTEGRATOR_SOURCE} ${SHAPE_SOURCE} ${ACCEL_SOURCE})
-target_include_directories(pbrt3 PUBLIC core integrators shapes)
+file(GLOB CAMERA_SOURCE
+    cameras/*.cpp
+)
+
+add_executable(pbrt3 "pbrt.cpp" ${CORE_SOURCE} ${INTEGRATOR_SOURCE} ${CAMERA_SOURCE} ${SHAPE_SOURCE} ${ACCEL_SOURCE})
+target_include_directories(pbrt3 PUBLIC core integrators shapes cameras)
 target_link_libraries(pbrt3 PUBLIC fmt)
 
 # test

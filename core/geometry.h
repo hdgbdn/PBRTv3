@@ -311,18 +311,44 @@ namespace pbrt
 	{
 	public:
 		Point2() = default;
+
 		Point2(T xx, T yy) : x(xx), y(yy)
 		{
 			assert(!HasNaNs());
 		}
+
 		Point2(const Point3<T>& p) : x(p.x), y(p.y)
 		{
 			assert(!HasNaNs());
 		}
+
+		template <typename U>
+		explicit Point2(const Point2<U>& p)
+		{
+			x = (T)p.x;
+			y = (T)p.y;
+			assert(!HasNaNs());
+		}
+
+		template <typename U>
+		explicit Point2(const Vector2<U>& p)
+		{
+			x = (T)p.x;
+			y = (T)p.y;
+			assert(!HasNaNs());
+		}
+
+		template <typename U>
+		explicit operator Vector2<U>() const
+		{
+			return Vector2<U>(x, y);
+		}
+
 		bool HasNaNs() const
 		{
 			return std::isnan(x) || std::isnan(y);
 		}
+
 		T x, y;
 	};
 

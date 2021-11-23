@@ -80,6 +80,9 @@ namespace pbrt
 	// shapes
 	class Shape;
 
+	// samplers
+	class RNG;
+
 	inline float Radians(float deg) { return (Pi / 180) * deg; }
 
 	inline float Degrees(float rad) { return (180 / Pi) * rad; }

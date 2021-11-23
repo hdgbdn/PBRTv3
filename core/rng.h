@@ -16,9 +16,9 @@ namespace pbrt {
 #endif
 
 #ifdef PBRT_FLOAT_AS_DOUBLE
-    static const Float OneMinusEpsilon = DoubleOneMinusEpsilon;
+    static const float OneMinusEpsilon = DoubleOneMinusEpsilon;
 #else
-    static const Float OneMinusEpsilon = FloatOneMinusEpsilon;
+    static const float OneMinusEpsilon = FloatOneMinusEpsilon;
 #endif
 
 #define PCG32_DEFAULT_STATE 0x853c49e6748fea9bULL
@@ -38,10 +38,10 @@ namespace pbrt {
                 if (r >= threshold) return r % b;
             }
         }
-        Float UniformFloat() {
+        float UniformFloat() {
 #ifndef PBRT_HAVE_HEX_FP_CONSTANTS
             return std::min(OneMinusEpsilon,
-                Float(UniformUInt32() * 2.3283064365386963e-10f));
+                float(UniformUInt32() * 2.3283064365386963e-10f));
 #else
             return std::min(OneMinusEpsilon, Float(UniformUInt32() * 0x1p-32f));
 #endif
@@ -75,7 +75,7 @@ namespace pbrt {
                     cur_state = cur_state * cur_mult + cur_plus;
                     distance |= the_bit;
                 }
-                CHECK_EQ(state & the_bit, cur_state & the_bit);
+                // CHECK_EQ(state & the_bit, cur_state & the_bit);
                 the_bit <<= 1;
                 cur_plus = (cur_mult + 1ULL) * cur_plus;
                 cur_mult *= cur_mult;

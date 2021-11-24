@@ -12,6 +12,15 @@ namespace pbrt
 	class Vector2
 	{
 	public:
+		Vector2() : x(0), y(0){}
+		Vector2(T xx, T yy) : x(xx), y(yy)
+		{
+			assert(!HasNaNs());
+		}
+		Vector2(const Normal2<T>& n) : x(n.x), y(n.y)
+		{
+			assert(!n.HasNaNs());
+		}
 		T operator[](int i) const
 		{
 			assert(i >= 0 && i <= 1);

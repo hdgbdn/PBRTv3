@@ -908,6 +908,13 @@ namespace pbrt
 		Vector2<T> Diagonal() const;
 		Point2<T> pMin, pMax;
 
+		Bounds2& operator=(const Bounds2& rhs)
+		{
+			pMin = rhs.pMin;
+			pMax = rhs.pMax;
+			return *this;
+		}
+
 		bool operator==(const Bounds2<T>& b) const
 		{
 			return b.pMin == pMin && b.pMax == pMax;

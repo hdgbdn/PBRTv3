@@ -2,13 +2,13 @@
 
 namespace pbrt
 {
-	void StratifiedSample1D(float* samp, int nSamples, RNG rng, bool jitter)
+	void StratifiedSample1D(float* samples, int nSamples, RNG& rng, bool jitter)
 	{
 		float invNSamples = (float)1 / nSamples;
 		for (int i = 0; i < nSamples; ++i)
 		{
 			float delta = jitter ? rng.UniformFloat() : 0.5f;
-			samp[i] = std::min((i + delta) * invNSamples, OneMinusEpsilon);
+			samples[i] = std::min((i + delta) * invNSamples, OneMinusEpsilon);
 		}
 	}
 

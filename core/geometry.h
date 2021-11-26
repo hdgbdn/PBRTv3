@@ -409,6 +409,32 @@ namespace pbrt
 			return std::isnan(x) || std::isnan(y);
 		}
 
+		Point2<T> operator+(const Vector2<T>& v) const
+		{
+			// DCHECK(!v.HasNaNs());
+			return Point2<T>(x + v.x, y + v.y);
+		}
+
+		Point2<T>& operator+=(const Vector2<T>& v)
+		{
+			// DCHECK(!v.HasNaNs());
+			x += v.x;
+			y += v.y;
+			return *this;
+		}
+
+		Vector2<T> operator-(const Point2<T>& p) const
+		{
+			// DCHECK(!p.HasNaNs());
+			return Vector2<T>(x - p.x, y - p.y);
+		}
+
+		Point2<T> operator-(const Vector2<T>& v) const
+		{
+			// DCHECK(!v.HasNaNs());
+			return Point2<T>(x - v.x, y - v.y);
+		}
+
 		T x, y;
 	};
 
@@ -428,6 +454,18 @@ namespace pbrt
 	Point2<T> operator*(U f, const Point2<T>& rhs)
 	{
 		return Point2<T>(f * rhs.x, f * rhs.y);
+	}
+
+	template <typename T>
+	Point2<T> Floor(const Point2<T>& p)
+	{
+		return (std::floor(p.x), std::floor(p.y));
+	}
+
+	template <typename T>
+	Point2<T> Ceil(const Point2<T>& p)
+	{
+		return (std::ceil(p.x), std::ceil(p.y));
 	}
 
 	template <typename T>
@@ -904,6 +942,12 @@ namespace pbrt
 			pMax(std::max(p1.x, p2.x), std::max(p1.y, p2.y))
 		{
 		}
+		template <typename U>
+		explicit Bounds2(const Bounds2<U>& p)
+		{
+			pMin = (T)p.pMin;
+			pMax = (T)p.pMax;
+		}
 
 		Vector2<T> Diagonal() const;
 		Point2<T> pMin, pMax;
@@ -924,10 +968,24 @@ namespace pbrt
 		{
 			return b.pMin != pMin || b.pMax != pMax;
 		}
+
+		T Area() const
+		{
+			Vector2<T> d = pMax - pMin;
+			return (d.x * d.y);
+		}
 	};
 
 	using Bounds2f = Bounds2<float>;
 	using Bounds2i = Bounds2<int>;
+
+	template <typename T>
+	Bounds2<T> Intersect(const Bounds2<T>& b1, const Bounds2<T>& b2) {
+		return Bounds2<T>(Point2<T>(std::max(b1.pMin.x, b2.pMin.x),
+			std::max(b1.pMin.y, b2.pMin.y)),
+			Point2<T>(std::min(b1.pMax.x, b2.pMax.x),
+				std::min(b1.pMax.y, b2.pMax.y)));
+	}
 
 	class Bounds2iIterator : public std::forward_iterator_tag
 	{
@@ -1131,6 +1189,16 @@ namespace pbrt
 				std::max(b.pMax.z, p.z)
 			)
 		);
+	}
+
+	template <typename T> Bounds3<T>
+	Intersect(const Bounds3<T>& b1, const Bounds3<T>& b2) {
+		return Bounds3<T>(Point3<T>(std::max(b1.pMin.x, b2.pMin.x),
+			std::max(b1.pMin.y, b2.pMin.y),
+			std::max(b1.pMin.z, b2.pMin.z)),
+			Point3<T>(std::min(b1.pMax.x, b2.pMax.x),
+				std::min(b1.pMax.y, b2.pMax.y),
+				std::min(b1.pMax.z, b2.pMax.z)));
 	}
 
 	template <typename T>

@@ -987,6 +987,14 @@ namespace pbrt
 				std::min(b1.pMax.y, b2.pMax.y)));
 	}
 
+	template <typename T>
+	bool InsideExclusive(const Point2<T>& p, const Bounds2<T>& b)
+	{
+		return (
+			p.x >= b.pMin.x && p.x < b.pMax.x&&
+			p.y >= b.pMin.y && p.y < b.pMax.y);
+	}
+
 	class Bounds2iIterator : public std::forward_iterator_tag
 	{
 	public:

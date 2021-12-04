@@ -201,6 +201,33 @@ namespace pbrt
         const TransportMode mode;
     };
 
+    class FresnelSpecular : public BxDF
+    {
+    public:
+	    FresnelSpecular(const Spectrum& R, const Spectrum& T,
+	                    float etaA, float etaB, TransportMode mode)
+		    : BxDF(BxDFType(BSDF_REFLECTION | BSDF_TRANSMISSION | BSDF_SPECULAR)),
+		      R(R), T(T), etaA(etaA), etaB(etaB), fresnel(etaA, etaB),
+		      mode(mode)
+	    {
+	    }
+
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
+	    {
+            return { 0.f };
+	    }
+
+        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& sample, float* pdf, BxDFType* sampledType) const override
+	    {
+		    // TODO defined in chapter 13
+	    }
+    private:
+	    const Spectrum R, T;
+	    const float etaA, etaB;
+	    const FresnelDielectric fresnel;
+	    const TransportMode mode;
+    };
+
 	class BSDF {
 	public:
 		Spectrum f(const Vector3f& woW, const Vector3f& wiW,

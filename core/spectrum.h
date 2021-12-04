@@ -64,52 +64,44 @@ namespace pbrt
 				c[i] = v;
 		}
 
-		CoefficientSpectrum& operator+=(const CoefficientSpectrum& s2)
-		{
-			for (int i = 0; i < nSpectrumSamples; ++i)
-				c[i] += s2.c[i];
+		CoefficientSpectrum& operator+=(const CoefficientSpectrum& s2) {
+			//DCHECK(!s2.HasNaNs());
+			for (int i = 0; i < nSpectrumSamples; ++i) c[i] += s2.c[i];
 			return *this;
 		}
-
-		CoefficientSpectrum operator+(const CoefficientSpectrum& s2) const
-		{
-			CoefficientSpectrum ret(*this);
-			for (int i = 0; i < nSpectrumSamples; ++i)
-				ret[i] += s2.c[i];
+		CoefficientSpectrum operator+(const CoefficientSpectrum& s2) const {
+			//DCHECK(!s2.HasNaNs());
+			CoefficientSpectrum ret = *this;
+			for (int i = 0; i < nSpectrumSamples; ++i) ret.c[i] += s2.c[i];
 			return ret;
 		}
-
-		CoefficientSpectrum operator*(const CoefficientSpectrum& sp) const
-		{
-			// DCHECK(!sp.HasNaNs());
+		CoefficientSpectrum operator-(const CoefficientSpectrum& s2) const {
+			//DCHECK(!s2.HasNaNs());
+			CoefficientSpectrum ret = *this;
+			for (int i = 0; i < nSpectrumSamples; ++i) ret.c[i] -= s2.c[i];
+			return ret;
+		}
+		CoefficientSpectrum operator/(const CoefficientSpectrum& s2) const {
+			//DCHECK(!s2.HasNaNs());
+			CoefficientSpectrum ret = *this;
+			for (int i = 0; i < nSpectrumSamples; ++i) {
+				//CHECK_NE(s2.c[i], 0);
+				ret.c[i] /= s2.c[i];
+			}
+			return ret;
+		}
+		CoefficientSpectrum operator*(const CoefficientSpectrum& sp) const {
+			//DCHECK(!sp.HasNaNs());
 			CoefficientSpectrum ret = *this;
 			for (int i = 0; i < nSpectrumSamples; ++i) ret.c[i] *= sp.c[i];
 			return ret;
 		}
-
-		CoefficientSpectrum operator*(float a) const
-		{
-			CoefficientSpectrum ret = *this;
-			for (int i = 0; i < nSpectrumSamples; ++i) ret.c[i] *= a;
-			//DCHECK(!ret.HasNaNs());
-			return ret;
-		}
-
-		CoefficientSpectrum operator/(float a) const
-		{
-			//CHECK_NE(a, 0);
-			//DCHECK(!std::isnan(a));
-			CoefficientSpectrum ret = *this;
-			for (int i = 0; i < nSpectrumSamples; ++i) ret.c[i] /= a;
-			//DCHECK(!ret.HasNaNs());
-			return ret;
-		}
-
-		CoefficientSpectrum& operator*=(float a) {
-			for (int i = 0; i < nSpectrumSamples; ++i) c[i] *= a;
-			//DCHECK(!HasNaNs());
+		CoefficientSpectrum& operator*=(const CoefficientSpectrum& sp) {
+			DCHECK(!sp.HasNaNs());
+			for (int i = 0; i < nSpectrumSamples; ++i) c[i] *= sp.c[i];
 			return *this;
 		}
+
 
 		CoefficientSpectrum Clamp(float low = 0, float high = Infinity) const
 		{
@@ -132,6 +124,58 @@ namespace pbrt
 		{
 			//DCHECK(!std::isnan(a) && !s.HasNaNs());
 			return s * a;
+		}
+
+		CoefficientSpectrum operator*(float a) const
+		{
+			CoefficientSpectrum ret = *this;
+			for (int i = 0; i < nSpectrumSamples; ++i) ret.c[i] *= a;
+			//DCHECK(!ret.HasNaNs());
+			return ret;
+		}
+
+		CoefficientSpectrum& operator*=(float a)
+		{
+			for (int i = 0; i < nSpectrumSamples; ++i) c[i] *= a;
+			//DCHECK(!HasNaNs());
+			return *this;
+		}
+
+		friend inline CoefficientSpectrum operator*(float a,
+		                                            const CoefficientSpectrum& s)
+		{
+			//DCHECK(!std::isnan(a) && !s.HasNaNs());
+			return s * a;
+		}
+
+		CoefficientSpectrum operator/(float a) const
+		{
+			//CHECK_NE(a, 0);
+			//DCHECK(!std::isnan(a));
+			CoefficientSpectrum ret = *this;
+			for (int i = 0; i < nSpectrumSamples; ++i) ret.c[i] /= a;
+			//DCHECK(!ret.HasNaNs());
+			return ret;
+		}
+
+		CoefficientSpectrum& operator/=(float a)
+		{
+			//CHECK_NE(a, 0);
+			//DCHECK(!std::isnan(a));
+			for (int i = 0; i < nSpectrumSamples; ++i) c[i] /= a;
+			return *this;
+		}
+
+		bool operator==(const CoefficientSpectrum& sp) const
+		{
+			for (int i = 0; i < nSpectrumSamples; ++i)
+				if (c[i] != sp.c[i]) return false;
+			return true;
+		}
+
+		bool operator!=(const CoefficientSpectrum& sp) const
+		{
+			return !(*this == sp);
 		}
 
 		bool IsBlack() const

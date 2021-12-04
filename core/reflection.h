@@ -4,6 +4,7 @@
 #include "geometry.h"
 #include "pbrt.h"
 #include "spectrum.h"
+#include "material.h"
 
 namespace pbrt
 {
@@ -50,6 +51,18 @@ namespace pbrt
         return -wo + 2 * Dot(wo, n) * n;
     }
 
+    inline bool Refract(const Vector3f& wi, const Normal3f& n, float eta,
+                        Vector3f* wt)
+    {
+        float cosThetaI = Dot(n, wi);
+        float sin2ThetaI = std::max(0.f, 1.f - cosThetaI * cosThetaI);
+        float sin2ThetaT = eta * eta * sin2ThetaI;
+        if (sin2ThetaI >= 1) return false;
+        float cosThetaT = std::sqrt(1 - sin2ThetaT);
+        *wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vector3f(n);
+        return true;
+    }
+
     enum BxDFType {
         BSDF_REFLECTION = 1 << 0,
         BSDF_TRANSMISSION = 1 << 1,
@@ -85,7 +98,7 @@ namespace pbrt
         // Fresnel Interface
         virtual ~Fresnel();
         virtual Spectrum Evaluate(float cosThetaI) const = 0;
-        virtual std::string ToString() const = 0;
+        //virtual std::string ToString() const = 0;
     };
 
     class FresnelConductor : public Fresnel
@@ -149,6 +162,43 @@ namespace pbrt
     private:
 	    const Spectrum R;
         const Fresnel* fresnel;
+    };
+
+    class SpecularTransmission : public BxDF
+    {
+    public:
+        SpecularTransmission(const Spectrum& T, float etaA, float etaB,
+                             TransportMode mode):
+	        BxDF(BxDFType(BSDF_TRANSMISSION | BSDF_SPECULAR)), T(T),
+	        etaA(etaA), etaB(etaB), fresnel(etaA, etaB), mode(mode)
+        {
+        }
+
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
+        {
+	        return {0.f};
+        }
+
+        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& sample, float* pdf,
+                          BxDFType* sampledType) const override
+        {
+            bool entering = CosTheta(wo) > 0;
+            float etaI = entering ? etaA : etaB;
+            float etaT = entering ? etaB : etaA;
+            if (!Refract(wo, Faceforward(Normal3f(0, 0, 1), wo), etaI / etaT, wi))
+                return 0;
+            *pdf = 1;
+            Spectrum ft = T * (Spectrum(1.) - fresnel.Evaluate(CosTheta(*wi)));
+            if (mode == TransportMode::Radiance)
+	            ft *= (etaI * etaI) / (etaT * etaT);
+
+            return ft / AbsCosTheta(*wi);
+        }
+    private:
+        const Spectrum T;
+        const float etaA, etaB;
+        const FresnelDielectric fresnel;
+        const TransportMode mode;
     };
 
 	class BSDF {

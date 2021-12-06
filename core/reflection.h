@@ -228,6 +228,27 @@ namespace pbrt
 	    const TransportMode mode;
     };
 
+    class LambertianReflection : public BxDF
+    {
+    public:
+        LambertianReflection(const Spectrum& R)
+	        :BxDF(BxDFType(BSDF_REFLECTION | BSDF_DIFFUSE)), R(R){ }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
+        {
+            return R * InvPi;
+        }
+        Spectrum rho(const Vector3f& wo, int nSamples, const Point2f* samples) const override
+        {
+            return R;
+        }
+        Spectrum rho(int nSamples, const Point2f* samples1, const Point2f* samples2) const override
+        {
+            return R;
+        }
+    private:
+        const Spectrum R;
+    };
+
 	class BSDF {
 	public:
 		Spectrum f(const Vector3f& woW, const Vector3f& wiW,

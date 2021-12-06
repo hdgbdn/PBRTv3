@@ -221,7 +221,7 @@ namespace pbrt
 	template <typename T, typename U>
 	Vector3<T>& operator*(U s, const Vector3<T>& v)
 	{
-		return v * s;
+		return s * v;
 	}
 
 	template <typename T>
@@ -1102,14 +1102,14 @@ namespace pbrt
 			return o;
 		}
 
-		Bounds3f& Union(const Bounds3<T>& b)
+		Bounds3& Union(const Bounds3<T>& b)
 		{
 			pMin = Point3<T>(
 				std::min(pMin.x, b.pMin.x),
 				std::min(pMin.y, b.pMin.y),
 				std::min(pMin.z, b.pMin.z)
 			);
-			pmax = Point3<T>(
+			pMax = Point3<T>(
 				std::max(pMax.x, b.pMax.x),
 				std::max(pMax.y, b.pMax.y),
 				std::max(pMax.z, b.pMax.z)
@@ -1117,14 +1117,14 @@ namespace pbrt
 			return *this;
 		}
 
-		Bounds3f& Union(const Point3<T>& p)
+		Bounds3& Union(const Point3<T>& p)
 		{
 			pMin = Point3<T>(
 				std::min(pMin.x, p.x),
 				std::min(pMin.y, p.y),
 				std::min(pMin.z, p.z)
 			);
-			pmax = Point3<T>(
+			pMax = Point3<T>(
 				std::max(pMax.x, p.x),
 				std::max(pMax.y, p.y),
 				std::max(pMax.z, p.z)

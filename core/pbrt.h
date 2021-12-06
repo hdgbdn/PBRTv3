@@ -74,6 +74,8 @@ namespace pbrt
 	class Point3;
 	template <typename T>
 	class Point2;
+    template <typename T>
+    class Normal2;
 	template <typename T>
 	class Normal3;
 	class Ray;

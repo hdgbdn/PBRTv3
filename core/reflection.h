@@ -5,6 +5,7 @@
 #include "pbrt.h"
 #include "spectrum.h"
 #include "material.h"
+#include "microfacet.h"
 
 namespace pbrt
 {
@@ -247,6 +248,132 @@ namespace pbrt
         }
     private:
         const Spectrum R;
+    };
+
+    class OrenNayar : public BxDF
+    {
+    public:
+        OrenNayar(const Spectrum& R, float sigma)
+	        : BxDF(BxDFType(BSDF_REFLECTION | BSDF_DIFFUSE)), R(R)
+        {
+            sigma = Radians(sigma);
+            float sigma2 = sigma * sigma;
+            A = 1.f - sigma2 / (2.f * (sigma2 + .33f));
+            B = .45f * sigma2 / (sigma2 + .09f);
+        }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
+        {
+            float sinThetaI = SinTheta(wi);
+            float sinThetaO = SinTheta(wo);
+            float maxCos = 0;
+            if (sinThetaI > 1e-4 && sinThetaO > 1e-4) {
+                float sinPhiI = SinPhi(wi), cosPhiI = CosPhi(wi);
+                float sinPhiO = SinPhi(wo), cosPhiO = CosPhi(wo);
+                float dCos = cosPhiI * cosPhiO + sinPhiI * sinPhiO;
+                maxCos = std::max((float)0, dCos);
+            }
+            float sinAlpha, tanBeta;
+            if (AbsCosTheta(wi) > AbsCosTheta(wo))
+            {
+	            sinAlpha = sinThetaO;
+	            tanBeta = sinThetaI / AbsCosTheta(wi);
+            }
+            else
+            {
+	            sinAlpha = sinThetaI;
+	            tanBeta = sinThetaO / AbsCosTheta(wo);
+            }
+            return R * InvPi * (A + B * maxCos * sinAlpha * tanBeta);
+        }
+    private:
+        const Spectrum R;
+        float A, B;
+    };
+
+    class MicrofacetReflection : public BxDF
+    {
+    public:
+	    MicrofacetReflection(BxDFType type, const Spectrum& r, MicrofacetDistribution* distribution,
+		    Fresnel* fresnel)
+		    : BxDF(BxDFType(BSDF_REFLECTION | BSDF_GLOSSY)),
+		      R(r),
+		      distribution(distribution),
+		      fresnel(fresnel) { }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
+	    {
+            float cosThetaO = AbsCosTheta(wo), cosThetaI;
+            Vector3f wh = wi + wo;
+            if (cosThetaI == 0 || cosThetaO == 0) return Spectrum(0.);
+            if (wh.x == 0 && wh.y == 0 && wh.z == 0) return Spectrum(0.);
+            Spectrum F = fresnel->Evaluate(Dot(wi, wh));
+            return R * distribution->D(wh) * distribution->G(wo, wi) * F / (4 * cosThetaI * cosThetaO);
+	    }
+    private:
+        const Spectrum R;
+        const MicrofacetDistribution* distribution;
+        const Fresnel* fresnel;
+    };
+
+    class MicrofacetTransmission : public BxDF
+    {
+    public:
+	    MicrofacetTransmission(BxDFType type, const Spectrum& t, MicrofacetDistribution* distribution, float etaA,
+		    float etaB, TransportMode mode)
+		    : BxDF(BxDFType(BSDF_TRANSMISSION | BSDF_GLOSSY)),
+		      T(t),
+		      distribution(distribution),
+		      etaA(etaA),
+		      etaB(etaB),
+		      fresnel(etaA, etaB),
+		      mode(mode)
+	    {
+	    }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
+	    {
+            //if (SameHemisphere(wo, wi)) return 0;  // transmission only
+
+            float cosThetaO = CosTheta(wo);
+            float cosThetaI = CosTheta(wi);
+            if (cosThetaI == 0 || cosThetaO == 0) return Spectrum(0);
+
+            // Compute $\wh$ from $\wo$ and $\wi$ for microfacet transmission
+            float eta = CosTheta(wo) > 0 ? (etaB / etaA) : (etaA / etaB);
+            Vector3f wh = Normalize(wo + wi * eta);
+            if (wh.z < 0) wh = -wh;
+
+            // Same side?
+            if (Dot(wo, wh) * Dot(wi, wh) > 0) return Spectrum(0);
+
+            Spectrum F = fresnel.Evaluate(Dot(wo, wh));
+
+            float sqrtDenom = Dot(wo, wh) + eta * Dot(wi, wh);
+            float factor = (mode == TransportMode::Radiance) ? (1 / eta) : 1;
+
+            return (Spectrum(1.f) - F) * T *
+                std::abs(distribution->D(wh) * distribution->G(wo, wi) * eta * eta *
+                    AbsDot(wi, wh) * AbsDot(wo, wh) * factor * factor /
+                    (cosThetaI * cosThetaO * sqrtDenom * sqrtDenom));
+	    }
+    private:
+        const Spectrum T;
+        const MicrofacetDistribution* distribution;
+        const float etaA, etaB;
+        const FresnelDielectric fresnel;
+        const TransportMode mode;
+    };
+
+    class FresnelBlend : public BxDF
+    {
+    public:
+	    FresnelBlend(const Spectrum& Rd, const Spectrum& Rs,
+	                 MicrofacetDistribution* distribution)
+		    : BxDF(BxDFType(BSDF_REFLECTION | BSDF_GLOSSY)),
+		      Rd(Rd), Rs(Rs), distribution(distribution) { }
+
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override;
+    private:
+        const Spectrum Rd, Rs;
+        MicrofacetDistribution* distribution;
     };
 
 	class BSDF {

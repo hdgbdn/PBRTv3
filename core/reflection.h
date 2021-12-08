@@ -368,9 +368,32 @@ namespace pbrt
 	    FresnelBlend(const Spectrum& Rd, const Spectrum& Rs,
 	                 MicrofacetDistribution* distribution)
 		    : BxDF(BxDFType(BSDF_REFLECTION | BSDF_GLOSSY)),
-		      Rd(Rd), Rs(Rs), distribution(distribution) { }
+		      Rd(Rd), Rs(Rs), distribution(distribution)
+	    {
+	    }
 
-        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override;
+	    Spectrum SchlickFresnel(float cosTheta) const
+	    {
+		    auto pow5 = [](float v) { return (v * v) * (v * v) * v; };
+		    return Rs + pow5(1 - cosTheta) * (Spectrum(1.) - Rs);
+	    }
+
+	    Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
+	    {
+		    auto pow5 = [](float v) { return (v * v) * (v * v) * v; };
+		    Spectrum diffuse = (28.f / (23.f * Pi)) * Rd *
+			    (Spectrum(1.f) - Rs) *
+			    (1 - pow5(1 - .5f * AbsCosTheta(wi))) *
+			    (1 - pow5(1 - .5f * AbsCosTheta(wo)));
+		    Vector3f wh = wi + wo;
+		    if (wh.x == 0 && wh.y == 0 && wh.z == 0) return Spectrum(0);
+		    wh = Normalize(wh);
+		    Spectrum specular = distribution->D(wh) /
+			    (4 * AbsDot(wi, wh) *
+				    std::max(AbsCosTheta(wi), AbsCosTheta(wo))) *
+			    SchlickFresnel(Dot(wi, wh));
+		    return diffuse + specular;
+	    }
     private:
         const Spectrum Rd, Rs;
         MicrofacetDistribution* distribution;

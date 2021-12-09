@@ -175,8 +175,23 @@ namespace pbrt
     class ScaledBxDF : public BxDF
     {
     public:
+        // ScaledBxDF Public Methods
         ScaledBxDF(BxDF* bxdf, const Spectrum& scale)
-            : BxDF(bxdf->type), bxdf(bxdf), scale(scale) {}
+            : BxDF(BxDFType(bxdf->type)), bxdf(bxdf), scale(scale) {}
+        Spectrum rho(const Vector3f& w, int nSamples,
+            const Point2f* samples) const {
+            return scale * bxdf->rho(w, nSamples, samples);
+        }
+        Spectrum rho(int nSamples, const Point2f* samples1,
+            const Point2f* samples2) const {
+            return scale * bxdf->rho(nSamples, samples1, samples2);
+        }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const;
+        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& sample,
+            float* pdf, BxDFType* sampledType) const;
+        float Pdf(const Vector3f& wo, const Vector3f& wi) const;
+        std::string ToString() const;
+
     private:
         BxDF* bxdf;
         Spectrum scale;
@@ -512,6 +527,7 @@ namespace pbrt
         int nBxDFs = 0;
         static constexpr int MaxBxDFs = 8;
         BxDF* bxdfs[MaxBxDFs];
+        friend class MixMaterial;
         ~BSDF() {}
 	};
     class BSSRDF {};

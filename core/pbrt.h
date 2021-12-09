@@ -89,6 +89,9 @@ namespace pbrt
 	// samplers
 	class RNG;
 
+	// material
+	class MixMaterial;
+
 	// Global constants
 
 	static constexpr float ShadowEpsilon = 0.0001f;

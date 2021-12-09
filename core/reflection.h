@@ -2,6 +2,7 @@
 #define PBRT_CORE_REFLECTION_H
 
 #include "geometry.h"
+#include "interaction.h"
 #include "pbrt.h"
 #include "spectrum.h"
 #include "material.h"
@@ -72,6 +73,44 @@ namespace pbrt
         BSDF_SPECULAR = 1 << 4,
         BSDF_ALL = BSDF_DIFFUSE | BSDF_GLOSSY | BSDF_SPECULAR | BSDF_REFLECTION |
         BSDF_TRANSMISSION,
+    };
+
+    struct FourierBSDFTable
+    {
+	    // FourierBSDFTable Public Data
+	    float eta;
+	    int mMax;
+	    int nChannels;
+	    int nMu;
+	    float* mu;
+	    int* m;
+	    int* aOffset;
+	    float* a;
+	    float* a0;
+	    float* cdf;
+	    float* recip;
+
+	    ~FourierBSDFTable()
+	    {
+		    delete[] mu;
+		    delete[] m;
+		    delete[] aOffset;
+		    delete[] a;
+		    delete[] a0;
+		    delete[] cdf;
+		    delete[] recip;
+	    }
+
+	    static bool Read(const std::string& filename, FourierBSDFTable* table);
+
+	    const float* GetAk(int offsetI, int offsetO, int* mptr) const
+	    {
+		    *mptr = m[offsetO * nMu + offsetI];
+		    return a + aOffset[offsetO * nMu + offsetI];
+	    }
+
+	    bool GetWeightsAndOffset(float cosTheta, int* offset,
+	                             float weights[4]) const;
     };
 
     class BxDF
@@ -401,11 +440,79 @@ namespace pbrt
 
 	class BSDF {
 	public:
+        BSDF(const SurfaceInteraction& si, float eta = 1)
+	        : eta(eta), ns(si.shading.n), ng(si.n),
+        ss(Normalize(si.shading.dpdu)), ts(Cross(ns, ss)) { }
+        void Add(BxDF* b)
+        {
+            assert(nBxDFs < MaxBxDFs);
+            bxdfs[nBxDFs++] = b;
+        }
+        int NumComponents(BxDFType flags = BSDF_ALL) const
+        {
+            int num = 0;
+            for (int i = 0; i < nBxDFs; ++i)
+                if (bxdfs[i]->MatchesFlags(flags)) ++num;
+            return num;
+        }
+
+        Vector3f WorldToLocal(const Vector3f& v) const
+        {
+	        return {Dot(v, ss), Dot(v, ts), Dot(v, ns)};
+        }
+
+        Vector3f LocalToWorld(const Vector3f& v) const
+        {
+	        return
+	        {
+		        ss.x * v.x + ts.x * v.y + ns.x * v.z,
+		        ss.y * v.x + ts.y * v.y + ns.y * v.z,
+		        ss.z * v.x + ts.z * v.y + ns.z * v.z,
+	        };
+        }
+
 		Spectrum f(const Vector3f& woW, const Vector3f& wiW,
-			BxDFType flags = BSDF_ALL) const;
+			BxDFType flags = BSDF_ALL) const
+        {
+            Vector3f wi = WorldToLocal(wiW), wo = WorldToLocal(woW);
+            bool reflect = Dot(wiW, ng) * Dot(woW, ng) > 0;
+            Spectrum f(0.f);
+            for (int i = 0; i < nBxDFs; ++i)
+	            if (bxdfs[i]->MatchesFlags(flags) &&
+		            (reflect && (bxdfs[i]->type && BSDF_REFLECTION)) ||
+		            (!reflect && (bxdfs[i]->type && BSDF_TRANSMISSION)))
+		            f += bxdfs[i]->f(wo, wi);
+        }
         Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& u,
             float* pdf, BxDFType type = BSDF_ALL,
             BxDFType* sampledType = nullptr) const;
+        Spectrum rho(int nSamples, const Point2f* samples1,
+            const Point2f* samples2, BxDFType flags = BSDF_ALL) const
+        {
+            Spectrum ret(0.f);
+            for (int i = 0; i < nBxDFs; ++i)
+                if (bxdfs[i]->MatchesFlags(flags))
+                    ret += bxdfs[i]->rho(nSamples, samples1, samples2);
+            return ret;
+        }
+        Spectrum rho(const Vector3f& woWorld, int nSamples, const Point2f* samples,
+            BxDFType flags = BSDF_ALL) const
+        {
+            Vector3f wo = WorldToLocal(woWorld);
+            Spectrum ret(0.f);
+            for (int i = 0; i < nBxDFs; ++i)
+                if (bxdfs[i]->MatchesFlags(flags))
+                    ret += bxdfs[i]->rho(wo, nSamples, samples);
+            return ret;
+        }
+        const float eta;
+	private:
+        const Normal3f ns, ng;
+        const Vector3f ss, ts;
+        int nBxDFs = 0;
+        static constexpr int MaxBxDFs = 8;
+        BxDF* bxdfs[MaxBxDFs];
+        ~BSDF() {}
 	};
     class BSSRDF {};
 }

@@ -72,13 +72,13 @@ namespace pbrt
             bool samplevis = true)
             : MicrofacetDistribution(samplevis), alphaX(alphaX), alphaY(alphaY) {
         }
-        inline float TrowbridgeReitzDistribution::RoughnessToAlpha(float roughness) {
+        inline static float TrowbridgeReitzDistribution::RoughnessToAlpha(float roughness) {
             roughness = std::max(roughness, (float)1e-3);
             float x = std::log(roughness);
             return 1.62142f + 0.819955f * x + 0.1734f * x * x +
                 0.0171201f * x * x * x + 0.000640711f * x * x * x * x;
         }
-        float D(const Vector3f& wh)
+        float D(const Vector3f& wh) const override
         {
             float tan2Theta = Tan2Theta(wh);
             if (std::isinf(tan2Theta)) return 0.;
@@ -87,12 +87,13 @@ namespace pbrt
                 Sin2Phi(wh) / (alphaY * alphaY)) * tan2Theta;
             return 1 / (Pi * alphaX * alphaY * cos4Theta * (1 + e) * (1 + e));
         }
+        Vector3f Sample_wh(const Vector3f& wo, const Point2f& u) const override;
         float G1(const Vector3f& w) const
         {
             return 1 / (1 + Lambda(w));
         }
     private:
-        float Lambda(const Vector3f& w) const
+        float Lambda(const Vector3f& w) const override
         {
             float absTanTheta = std::abs(TanTheta(w));
             if (std::isinf(absTanTheta)) return 0.;

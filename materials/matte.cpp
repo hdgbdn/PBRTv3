@@ -9,7 +9,7 @@ namespace pbrt
 	                                               bool allowMultipleLobes) const
 	{
 		if (bumpMap)
-			//Bump(bumpMap, si);
+			Bump(bumpMap, si);
 		si->bsdf = ARENA_ALLOC(arena, BSDF)(*si);
 		Spectrum r = Kd->Evaluate(*si).Clamp();
 		float sig = Clamp(sigma->Evaluate(*si), 0, 90);

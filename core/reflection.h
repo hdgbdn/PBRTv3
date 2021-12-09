@@ -332,7 +332,7 @@ namespace pbrt
     class MicrofacetReflection : public BxDF
     {
     public:
-	    MicrofacetReflection(BxDFType type, const Spectrum& r, MicrofacetDistribution* distribution,
+	    MicrofacetReflection(const Spectrum& r, MicrofacetDistribution* distribution,
 		    Fresnel* fresnel)
 		    : BxDF(BxDFType(BSDF_REFLECTION | BSDF_GLOSSY)),
 		      R(r),

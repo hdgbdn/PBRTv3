@@ -17,7 +17,7 @@ namespace pbrt
 		                                        MemoryArena& arena,
 		                                        TransportMode mode,
 		                                        bool allowMultipleLobes) const = 0;
-        void Bump(const std::shared_ptr<Texture<float>>& d,
+        static void Bump(const std::shared_ptr<Texture<float>>& d,
             SurfaceInteraction* si)
 		{
 			SurfaceInteraction siEval = *si;

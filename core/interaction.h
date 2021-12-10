@@ -9,6 +9,8 @@
 
 namespace pbrt
 {
+	enum class TransportMode;
+
 	struct Interaction
 	{
 		Interaction() : time(0) {}
@@ -57,6 +59,7 @@ namespace pbrt
 		BSDF* bsdf = nullptr;
 		BSSRDF* bssrdf = nullptr;
 		const Primitive* primitive = nullptr;
+		mutable float dudx = 0, dvdx = 0, dudy = 0, dvdy = 0;
 	};
 }
 

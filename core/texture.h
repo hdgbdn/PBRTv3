@@ -132,8 +132,8 @@ namespace pbrt
     template <typename T>
     class Texture {
     public:
-        virtual T Evaluate(const SurfaceInteraction&) const = 0;
         virtual ~Texture() {}
+        virtual T Evaluate(const SurfaceInteraction&) const = 0;
     };
 }
 

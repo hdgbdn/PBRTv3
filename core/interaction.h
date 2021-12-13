@@ -1,16 +1,14 @@
 #ifndef PBRT_CORE_INTERACTION_H
 #define PBRT_CORE_INTERACTION_H
 
+#include "pbrt.h"
 #include "geometry.h"
 #include "material.h"
 #include "reflection.h"
 #include "medium.h"
-#include "shape.h"
 
 namespace pbrt
 {
-	enum class TransportMode;
-
 	struct Interaction
 	{
 		Interaction() : time(0) {}
@@ -46,6 +44,7 @@ namespace pbrt
 			const RayDifferential& ray, MemoryArena& arena,
 			bool allowMultipleLobes = false,
 			TransportMode mode = TransportMode::Radiance);
+		void ComputeDifferentials(const RayDifferential& ray) const;
 		Spectrum Le(const Vector3f& w) const;
 		Point2f uv;
 		Vector3f dpdu, dpdv;
@@ -59,6 +58,7 @@ namespace pbrt
 		BSDF* bsdf = nullptr;
 		BSSRDF* bssrdf = nullptr;
 		const Primitive* primitive = nullptr;
+		mutable Vector3f dpdx, dpdy;
 		mutable float dudx = 0, dvdx = 0, dudy = 0, dvdy = 0;
 	};
 }

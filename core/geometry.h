@@ -435,6 +435,13 @@ namespace pbrt
 			return Point2<T>(x - v.x, y - v.y);
 		}
 
+		T operator[](size_t i) const
+		{
+			assert(i <= 2);
+			if (i == 0) return x;
+			return y;
+		}
+
 		T x, y;
 	};
 

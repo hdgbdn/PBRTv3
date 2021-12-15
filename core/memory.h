@@ -94,6 +94,16 @@ public:
     uint8_t* currentBlock = nullptr;
     std::list<std::pair<size_t, uint8_t*>> usedBlocks, availableBlocks;
     };
+
+    template <typename T, int logBlockSize>
+	class BlockedArray {
+    public:
+        int uSize() const { return uRes; }
+        int vSize() const { return vRes; }
+    private:
+        T* data;
+        const int uRes, vRes, uBlocks;
+    };
 }
 
 #endif

@@ -92,6 +92,19 @@ namespace pbrt
 	// material
 	class MixMaterial;
 
+	template <typename T>
+	inline T Mod(T a, T b)
+	{
+		T result = a - (a / b) * b;
+		return (T)((result < 0) ? result + b : result);
+	}
+
+	template <>
+	inline float Mod(float a, float b)
+	{
+		return std::fmod(a, b);
+	}
+
 	// Global constants
 
 	static constexpr float ShadowEpsilon = 0.0001f;
@@ -214,6 +227,30 @@ namespace pbrt
 		else
 			ui += delta;
 		return BitsToFloat(ui);
+	}
+
+	template <typename T> inline bool IsPowerOf2(T v) {
+		return v && !(v & (v - 1));
+	}
+
+	inline int32_t RoundUpPow2(int32_t v) {
+		v--;
+		v |= v >> 1;    v |= v >> 2;
+		v |= v >> 4;    v |= v >> 8;
+		v |= v >> 16;
+		return v + 1;
+	}
+
+	inline float GammaCorrect(float value) {
+		if (value <= 0.0031308f)
+			return 12.92f * value;
+		return 1.055f * std::pow(value, (float)(1.f / 2.4f)) - 0.055f;
+	}
+
+	inline float InverseGammaCorrect(float value) {
+		if (value <= 0.04045f)
+			return value * 1.f / 12.92f;
+		return std::pow((value + 0.055f) * 1.f / 1.055f, (float)2.4f);
 	}
 }
 

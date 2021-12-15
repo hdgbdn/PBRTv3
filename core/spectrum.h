@@ -196,6 +196,13 @@ namespace pbrt
 		{
 			return c[i];
 		}
+
+		float operator[](int i) const {
+			// DCHECK(i >= 0 && i < nSpectrumSamples);
+			return c[i];
+		}
+
+		static const int nSamples = nSpectrumSamples;
 	protected:
 		float c[nSpectrumSamples];
 	};

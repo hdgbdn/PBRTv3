@@ -33,6 +33,10 @@ file(GLOB SAMPLERS_SOURCE
     samplers/*.cpp
 )
 
+file(GLOB FILTERS_SOURCE
+    filters/*.cpp
+)
+
 file(GLOB TEXTURES_SOURCE
     textures/*.cpp
 )
@@ -45,9 +49,10 @@ add_executable(pbrt3 "pbrt.cpp"
                 ${ACCEL_SOURCE} 
                 ${MATTERIAL_SOURCE}
                 ${SAMPLERS_SOURCE}
+                ${FILTERS_SOURCE}
                 ${TEXTURES_SOURCE})
 
-target_include_directories(pbrt3 PUBLIC core integrators shapes cameras samplers materials textures)
+target_include_directories(pbrt3 PUBLIC core integrators shapes cameras samplers materials filters textures)
 target_link_libraries(pbrt3 PUBLIC fmt)
 
 # test

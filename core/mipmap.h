@@ -23,8 +23,8 @@ namespace pbrt
 		int Height() const { return resolution.y; }
 		int Levels() const { return pyramid.size(); }
 		const T& Texel(int level, int s, int t) const;
-		T Lookup(const Point2f& st, Vector2f dst0,
-			Vector2f dst1) const;
+		T Lookup(const Point2f& st, float width) const;
+		T triangle(int level, const Point2f& st) const;
 	private:
 		const bool doTrilinear;
 		const float maxAnisotropy;

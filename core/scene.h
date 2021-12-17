@@ -22,6 +22,9 @@ namespace pbrt
 		std::vector<std::shared_ptr<Light>> lights;
 		const Bounds3f Worldbound() const { return worldBound; }
 		bool Intersect(const Ray& ray, SurfaceInteraction* isect) const;
+		bool IntersectP(const Ray& ray) const {
+			return aggregate->IntersectP(ray);
+		}
 	private:
 		std::shared_ptr<Primitive> aggregate;
 		Bounds3f worldBound;

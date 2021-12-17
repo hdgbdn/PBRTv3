@@ -231,6 +231,12 @@ namespace pbrt
 	}
 
 	template <typename T>
+	Normal3<T> Abs(const Normal3<T>& v)
+	{
+		return Normal3<T>(std::abs(v.x), std::abs(v.y), std::abs(v.z));
+	}
+
+	template <typename T>
 	Vector3<T> Cross(const Vector3<T>& lhs, const Vector3<T>& rhs)
 	{
 		double v1x = lhs.x, v1y = lhs.y, v1z = lhs.z;
@@ -976,6 +982,15 @@ namespace pbrt
 			return b.pMin != pMin || b.pMax != pMax;
 		}
 
+		template <typename T>
+		Vector2<T> Offset(const Point2<T>& p) const
+		{
+			Vector3<T> o = p - pMin;
+			if (pMax.x > pMin.x) o.x /= pMax.x - pMin.x;
+			if (pMax.y > pMin.y) o.y /= pMax.y - pMin.y;
+			return o;
+		}
+
 		T Area() const
 		{
 			Vector2<T> d = pMax - pMin;
@@ -1260,6 +1275,14 @@ namespace pbrt
 			p.z >= b.pMax.z && p.z < b.pMax.z);
 	}
 
+	template <typename T>
+	bool Inside(const Point2<T>& p, const Bounds2<T>& b)
+	{
+		return (
+			p.x >= b.pMin.x && p.x <= b.pMax.x &&
+			p.y >= b.pMin.y && p.y <= b.pMax.y);
+	}
+
 	template <typename T, typename U>
 	Bounds3<T> Expand(const Bounds3<T>& b, U delta)
 	{
@@ -1296,6 +1319,21 @@ namespace pbrt
 	{
 		float p = std::atan2(v.y, v.x);
 		return p < 0 ? (p + 2 * Pi) : p;
+	}
+
+	inline Point3f OffsetRayOrigin(const Point3f& p, const Vector3f& pError,
+		const Normal3f& n, const Vector3f& w) {
+		float d = Dot(Abs(n), pError);
+		Vector3f offset = d * Vector3f(n);
+		if (Dot(w, n) < 0)
+			offset = -offset;
+		Point3f po = p + offset;
+			for (int i = 0; i < 3; ++i) {
+				if (offset[i] > 0)      po[i] = NextFloatUp(po[i]);
+				else if (offset[i] < 0) po[i] = NextFloatDown(po[i]);
+			}
+
+		return po;
 	}
 }
 

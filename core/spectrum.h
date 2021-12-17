@@ -297,6 +297,11 @@ namespace pbrt
 
 		RGBSpectrum(const CoefficientSpectrum<3>& v) : CoefficientSpectrum<3>(v) {}
 
+		RGBSpectrum(const RGBSpectrum& s,
+			SpectrumType type = SpectrumType::Reflectance) {
+			*this = s;
+		}
+
 		static RGBSpectrum FromRGB(const float rgb[3],
 			SpectrumType type = SpectrumType::Reflectance)
 		{
@@ -335,6 +340,30 @@ namespace pbrt
 
 	inline Spectrum Lerp(float t, const Spectrum& s1, const Spectrum& s2) {
 		return (1 - t) * s1 + t * s2;
+	}
+
+	void Blackbody(const float* lambda, int n, float T, float* Le)
+	{
+		const float c = 299792458;
+		const float h = 6.62606957e-34;
+		const float kb = 1.3806488e-23;
+		for(int i = 0; i < n; ++i)
+		{
+			float l = lambda[i] * 1e-9;
+			float lambda5 = (l * l) * (l * l) * l;
+			Le[i] = (2 * h * c * c) /
+				(lambda5 * (std::exp((h * c) / (l * kb * T)) - 1));
+		}
+	}
+
+	void BlackbodyNormalized(const float* lambda, int n, float T, float* Le)
+	{
+		Blackbody(lambda, n, T, Le);
+		float lambdaMax = 2.8977721e-3 / T * 1e9;
+		float maxL;
+		Blackbody(&lambdaMax, 1, T, &maxL);
+		for (int i = 0; i < n; ++i)
+			Le[i] /= maxL;
 	}
 }
 

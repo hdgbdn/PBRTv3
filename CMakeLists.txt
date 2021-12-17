@@ -41,6 +41,10 @@ file(GLOB TEXTURES_SOURCE
     textures/*.cpp
 )
 
+file(GLOB LIGHTS_SOURCE
+    lights/*.cpp
+)
+
 add_executable(pbrt3 "pbrt.cpp" 
                 ${CORE_SOURCE} 
                 ${INTEGRATOR_SOURCE} 
@@ -50,9 +54,11 @@ add_executable(pbrt3 "pbrt.cpp"
                 ${MATTERIAL_SOURCE}
                 ${SAMPLERS_SOURCE}
                 ${FILTERS_SOURCE}
-                ${TEXTURES_SOURCE})
+                ${TEXTURES_SOURCE}
+                ${LIGHTS_SOURCE}
+)
 
-target_include_directories(pbrt3 PUBLIC core integrators shapes cameras samplers materials filters textures)
+target_include_directories(pbrt3 PUBLIC core integrators shapes cameras samplers materials filters textures lights)
 target_link_libraries(pbrt3 PUBLIC fmt)
 
 # test

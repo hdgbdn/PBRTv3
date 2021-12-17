@@ -21,6 +21,31 @@ namespace pbrt
 		{
 			return n != Normal3f();
 		}
+		Ray SpawnRayTo(const Point3f& p2) const {
+			Point3f origin = OffsetRayOrigin(p, pError, n, p2 - p);
+			Vector3f d = p2 - origin;
+			return Ray(origin, d, 1 - ShadowEpsilon, time, GetMedium(d));
+		}
+		Ray SpawnRayTo(const Interaction& it) const {
+			Point3f origin = OffsetRayOrigin(p, pError, n, it.p - p);
+			Point3f target = OffsetRayOrigin(it.p, it.pError, it.n, origin - it.p);
+			Vector3f d = target - origin;
+			return Ray(origin, d, 1 - ShadowEpsilon, time, GetMedium(d));
+		}
+		const Medium* GetMedium() const {
+			assert(mediumInterface.inside == mediumInterface.outside);
+			return mediumInterface.inside;
+		}
+		const Medium* GetMedium(const Vector3f& w) const {
+			return Dot(w, n) > 0 ? mediumInterface.outside :
+				mediumInterface.inside;
+		}
+		Interaction(const Point3f& p, const Vector3f& wo, float time,
+			const MediumInterface& mediumInterface)
+			: p(p), time(time), wo(wo), mediumInterface(mediumInterface) {}
+		Interaction(const Point3f& p, float time,
+			const MediumInterface& mediumInterface)
+			: p(p), time(time), mediumInterface(mediumInterface) {}
 		Point3f p;
 		float time;
 		Vector3f pError;

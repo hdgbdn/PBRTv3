@@ -18,12 +18,12 @@ namespace pbrt
 	class MIPMap
 	{
 	public:
-		MIPMap(const Point2i& res, const T* img, bool doTrilinear, float maxAnisotropy, ImageWrap wrapMode);
+		MIPMap(const Point2i& res, const T* img, bool doTrilinear = false, float maxAnisotropy = 8.f, ImageWrap wrapMode = ImageWrap::Repeat);
 		int Width() const { return resolution.x; }
 		int Height() const { return resolution.y; }
 		int Levels() const { return pyramid.size(); }
 		const T& Texel(int level, int s, int t) const;
-		T Lookup(const Point2f& st, float width) const;
+		T Lookup(const Point2f& st, float width = 0.f) const;
 		T triangle(int level, const Point2f& st) const;
 	private:
 		const bool doTrilinear;

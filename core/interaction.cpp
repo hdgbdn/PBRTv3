@@ -1,4 +1,6 @@
 #include "interaction.h"
+#include "light.h"
+#include "primitive.h"
 #include "shape.h"
 #include "transformation.h"
 
@@ -84,6 +86,12 @@ namespace pbrt
 			dudy = dvdy = 0;
 			dpdx = dpdy = Vector3f(0, 0, 0);
 		}
+	}
+
+	Spectrum SurfaceInteraction::Le(const Vector3f& w) const
+	{
+		const AreaLight* area = primitive->GetAreaLight();
+		return area ? area->L(*this, w) : Spectrum(0.f);
 	}
 
 

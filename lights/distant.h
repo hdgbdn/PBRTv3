@@ -9,7 +9,7 @@ namespace pbrt
 	{
 	public:
 		DistantLight(const Transform& LightToWorld, const Spectrum& L, const Vector3f& wLight);
-		void Preprocess(const Scene& scene);
+		void Preprocess(const Scene& scene) override;
 		Spectrum Sample_Li(const Interaction& ref, const Point2f& u, Vector3f* wi, float* pdf, VisibilityTester* vis) const override;
 		Spectrum Power() const override;
 	private:

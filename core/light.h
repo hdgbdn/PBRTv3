@@ -23,7 +23,7 @@ namespace pbrt
 		Light(int flags, const Transform& LightToWorld, const MediumInterface& mediumInterface,
 			int nSamples = 1);
 		virtual Spectrum Power() const = 0;
-		void Preprocess(const Scene& scene) { };
+		virtual void Preprocess(const Scene& scene) { };
 		virtual Spectrum Le(const RayDifferential& ray) const;
 		virtual Spectrum Sample_Li(const Interaction& ref, const Point2f& u,
 			Vector3f* wi, float* pdf,
@@ -65,6 +65,14 @@ namespace pbrt
 		}
 	private:
 		Interaction p0, p1;
+	};
+
+	class AreaLight : Light
+	{
+	public:
+		AreaLight(const Transform& LightToWorld, const MediumInterface& medium, int nSamples)
+			: Light((int)LightFlags::Area, LightToWorld, medium, nSamples) { }
+		virtual Spectrum L(const Interaction& intr, const Vector3f& w) const = 0;
 	};
 }
 

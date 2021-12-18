@@ -1,9 +1,6 @@
 #ifndef PBRT_CORE_INTERACTION_H
 #define PBRT_CORE_INTERACTION_H
 
-#include "pbrt.h"
-#include "geometry.h"
-#include "material.h"
 #include "reflection.h"
 #include "medium.h"
 

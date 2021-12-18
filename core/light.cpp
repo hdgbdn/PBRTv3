@@ -7,4 +7,8 @@ namespace pbrt
 	mediumInterface(mediumInterface), LightToWorld(LightToWorld), WorldToLight(Inverse(LightToWorld))
 	{
 	}
+	Spectrum Light::Le(const RayDifferential& ray) const
+	{
+		return Spectrum(0.f);
+	}
 }

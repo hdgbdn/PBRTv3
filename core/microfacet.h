@@ -1,5 +1,5 @@
-#ifndef PBRT_CORE_FILM_H
-#define PBRT_CORE_FILM_H
+#ifndef PBRT_CORE_MICROFACET_H
+#define PBRT_CORE_MICROFACET_H
 
 #include "pbrt.h"
 #include "geometry.h"

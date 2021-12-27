@@ -448,6 +448,13 @@ namespace pbrt
 			return y;
 		}
 
+		T& operator[](size_t i)
+		{
+			assert(i <= 2);
+			if (i == 0) return x;
+			return y;
+		}
+
 		T x, y;
 	};
 

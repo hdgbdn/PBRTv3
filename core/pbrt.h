@@ -89,6 +89,9 @@ namespace pbrt
 	// samplers
 	class RNG;
 
+	// BxDF
+	class MicrofacetDistribution;
+
 	// material
 	class MixMaterial;
 

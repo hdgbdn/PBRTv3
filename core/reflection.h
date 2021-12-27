@@ -6,7 +6,6 @@
 #include "pbrt.h"
 #include "spectrum.h"
 #include "material.h"
-#include "microfacet.h"
 
 namespace pbrt
 {
@@ -63,6 +62,11 @@ namespace pbrt
         float cosThetaT = std::sqrt(1 - sin2ThetaT);
         *wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vector3f(n);
         return true;
+    }
+
+    inline bool SameHemisphere(const Vector3f& w, const Vector3f& wp)
+    {
+        return w.z * wp.z > 0;
     }
 
     enum BxDFType {
@@ -124,13 +128,13 @@ namespace pbrt
         }
         virtual Spectrum f(const Vector3f& wo, const Vector3f& wi) const = 0;
         virtual Spectrum Sample_f(const Vector3f& wo, Vector3f* wi,
-                                  const Point2f& sample, float* pdf,
+                                  const Point2f& u, float* pdf,
                                   BxDFType* sampledType = nullptr) const;
         virtual Spectrum rho(const Vector3f& wo, int nSamples,
                              const Point2f* samples) const;
         virtual Spectrum rho(int nSamples, const Point2f* samples1, const Point2f* samples2) const;
-
-        const BxDFType type;
+        virtual float Pdf(const Vector3f& wo, const Vector3f& wi) const;
+    	const BxDFType type;
     };
 
     class Fresnel {
@@ -353,15 +357,10 @@ namespace pbrt
 		      R(r),
 		      distribution(distribution),
 		      fresnel(fresnel) { }
-        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
-	    {
-            float cosThetaO = AbsCosTheta(wo), cosThetaI;
-            Vector3f wh = wi + wo;
-            if (cosThetaI == 0 || cosThetaO == 0) return Spectrum(0.);
-            if (wh.x == 0 && wh.y == 0 && wh.z == 0) return Spectrum(0.);
-            Spectrum F = fresnel->Evaluate(Dot(wi, wh));
-            return R * distribution->D(wh) * distribution->G(wo, wi) * F / (4 * cosThetaI * cosThetaO);
-	    }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override;
+        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& u, float* pdf, BxDFType* sampledType) const override;
+	    virtual Vector3f Sample_wh(const Vector3f& wo, const Point2f& u) const = 0;
+        float Pdf(const Vector3f& wo, const Vector3f& wi) const override;
     private:
         const Spectrum R;
         const MicrofacetDistribution* distribution;
@@ -382,32 +381,9 @@ namespace pbrt
 		      mode(mode)
 	    {
 	    }
-        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
-	    {
-            //if (SameHemisphere(wo, wi)) return 0;  // transmission only
-
-            float cosThetaO = CosTheta(wo);
-            float cosThetaI = CosTheta(wi);
-            if (cosThetaI == 0 || cosThetaO == 0) return Spectrum(0);
-
-            // Compute $\wh$ from $\wo$ and $\wi$ for microfacet transmission
-            float eta = CosTheta(wo) > 0 ? (etaB / etaA) : (etaA / etaB);
-            Vector3f wh = Normalize(wo + wi * eta);
-            if (wh.z < 0) wh = -wh;
-
-            // Same side?
-            if (Dot(wo, wh) * Dot(wi, wh) > 0) return Spectrum(0);
-
-            Spectrum F = fresnel.Evaluate(Dot(wo, wh));
-
-            float sqrtDenom = Dot(wo, wh) + eta * Dot(wi, wh);
-            float factor = (mode == TransportMode::Radiance) ? (1 / eta) : 1;
-
-            return (Spectrum(1.f) - F) * T *
-                std::abs(distribution->D(wh) * distribution->G(wo, wi) * eta * eta *
-                    AbsDot(wi, wh) * AbsDot(wo, wh) * factor * factor /
-                    (cosThetaI * cosThetaO * sqrtDenom * sqrtDenom));
-	    }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override;
+        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& u, float* pdf, BxDFType* sampledType) const override;
+        float Pdf(const Vector3f& wo, const Vector3f& wi) const override;
     private:
         const Spectrum T;
         const MicrofacetDistribution* distribution;
@@ -432,22 +408,7 @@ namespace pbrt
 		    return Rs + pow5(1 - cosTheta) * (Spectrum(1.) - Rs);
 	    }
 
-	    Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
-	    {
-		    auto pow5 = [](float v) { return (v * v) * (v * v) * v; };
-		    Spectrum diffuse = (28.f / (23.f * Pi)) * Rd *
-			    (Spectrum(1.f) - Rs) *
-			    (1 - pow5(1 - .5f * AbsCosTheta(wi))) *
-			    (1 - pow5(1 - .5f * AbsCosTheta(wo)));
-		    Vector3f wh = wi + wo;
-		    if (wh.x == 0 && wh.y == 0 && wh.z == 0) return Spectrum(0);
-		    wh = Normalize(wh);
-		    Spectrum specular = distribution->D(wh) /
-			    (4 * AbsDot(wi, wh) *
-				    std::max(AbsCosTheta(wi), AbsCosTheta(wo))) *
-			    SchlickFresnel(Dot(wi, wh));
-		    return diffuse + specular;
-	    }
+	    Spectrum f(const Vector3f& wo, const Vector3f& wi) const override;
     private:
         const Spectrum Rd, Rs;
         MicrofacetDistribution* distribution;

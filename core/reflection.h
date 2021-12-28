@@ -218,6 +218,7 @@ namespace pbrt
             *pdf = 1;
             return fresnel->Evaluate(CosTheta(*wi)) * R / AbsCosTheta(*wi);
 	    }
+        float Pdf(const Vector3f& wo, const Vector3f& wi) const override { return 0.f; }
     private:
 	    const Spectrum R;
         const Fresnel* fresnel;
@@ -253,6 +254,7 @@ namespace pbrt
 
             return ft / AbsCosTheta(*wi);
         }
+        float Pdf(const Vector3f& wo, const Vector3f& wi) const override { return 0.f; }
     private:
         const Spectrum T;
         const float etaA, etaB;
@@ -271,15 +273,9 @@ namespace pbrt
 	    {
 	    }
 
-        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override
-	    {
-            return { 0.f };
-	    }
+        Spectrum f(const Vector3f& wo, const Vector3f& wi) const override { return { 0.f }; }
 
-        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& sample, float* pdf, BxDFType* sampledType) const override
-	    {
-		    // TODO defined in chapter 13
-	    }
+        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& sample, float* pdf, BxDFType* sampledType) const override;
     private:
 	    const Spectrum R, T;
 	    const float etaA, etaB;
@@ -407,7 +403,8 @@ namespace pbrt
 		    auto pow5 = [](float v) { return (v * v) * (v * v) * v; };
 		    return Rs + pow5(1 - cosTheta) * (Spectrum(1.) - Rs);
 	    }
-
+        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& u, float* pdf, BxDFType* sampledType) const override;
+        float Pdf(const Vector3f& wo, const Vector3f& wi) const override;
 	    Spectrum f(const Vector3f& wo, const Vector3f& wi) const override;
     private:
         const Spectrum Rd, Rs;
@@ -459,7 +456,7 @@ namespace pbrt
 		            (!reflect && (bxdfs[i]->type && BSDF_TRANSMISSION)))
 		            f += bxdfs[i]->f(wo, wi);
         }
-        Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& u,
+        Spectrum Sample_f(const Vector3f& woWorld, Vector3f* wiWorld, const Point2f& u,
             float* pdf, BxDFType type = BSDF_ALL,
             BxDFType* sampledType = nullptr) const;
         Spectrum rho(int nSamples, const Point2f* samples1,
@@ -481,6 +478,8 @@ namespace pbrt
                     ret += bxdfs[i]->rho(wo, nSamples, samples);
             return ret;
         }
+        float Pdf(const Vector3f& woWorld, const Vector3f& wiWorld,
+                  BxDFType flags = BSDF_ALL) const;
         const float eta;
 	private:
         const Normal3f ns, ng;

@@ -56,6 +56,34 @@ namespace pbrt
 		return f(wo, *wi);
 	}
 
+	Spectrum BxDF::rho(const Vector3f& wo, int nSamples, const Point2f* samples) const
+	{
+		Spectrum r(0.f);
+		for(int i = 0; i < nSamples; ++i)
+		{
+			Vector3f wi;
+			float pdf = 0;
+			Spectrum f = Sample_f(wo, &wi, samples[i], &pdf);
+			if (pdf > 0) r += f * AbsCosTheta(wi) / pdf;
+		}
+		return r / nSamples;
+	}
+
+	Spectrum BxDF::rho(int nSamples, const Point2f* samples1, const Point2f* samples2) const
+	{
+		Spectrum r(0.f);
+		for(int i = 0; i < nSamples; ++i)
+		{
+			Vector3f wo, wi;
+			wo = UniformSampleHemisphere(samples1[i]);
+			float pdfo = UniformHemispherePdf(), pdfi = 0;
+			Spectrum f = Sample_f(wo, &wi, samples2[i], &pdfi);
+			if (pdfi > 0)
+				r += f * AbsCosTheta(wi) * AbsCosTheta(wo) / (pdfo * pdfi);
+		}
+		return r / (Pi * nSamples);
+	}
+
 	float BxDF::Pdf(const Vector3f& wo, const Vector3f& wi) const
 	{
 		return SameHemisphere(wo, wi) ? AbsCosTheta(wi) * InvPi : 0;
@@ -132,6 +160,35 @@ namespace pbrt
 		return distribution->Pdf(wo, wh) * dwh_dwi;
 	}
 
+	Spectrum FresnelBlend::Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& uOrig, float* pdf, BxDFType* sampledType) const
+	{
+		Point2f u = uOrig;
+		if(u[0] < .5)
+		{
+			u[0] = 2 * u[0];
+			*wi = CosineSampleHemisphere(u);
+			if (wo.z < 0) wi->z *= -1;
+		}
+		else
+		{
+			u[0] = 2 * (u[0] - .5f);
+			Vector3f wh = distribution->Sample_wh(wo, u);
+			*wi = Reflect(wo, wh);
+			if (!SameHemisphere(wo, *wi)) return Spectrum(0.f);
+		}
+		*pdf = Pdf(wo, *wi);
+		return f(wo, *wi);
+	}
+
+	float FresnelBlend::Pdf(const Vector3f& wo, const Vector3f& wi) const
+	{
+		if (!SameHemisphere(wo, wi)) return 0;
+		Vector3f wh = Normalize(wo + wi);
+		float pdf_wh = distribution->Pdf(wo, wh);
+		return .5f * (AbsCosTheta(wi) * InvPi +
+			pdf_wh / (4 * Dot(wo, wh)));
+	}
+
 	Spectrum FresnelBlend::f(const Vector3f& wo, const Vector3f& wi) const
 	{
 		auto pow5 = [](float v) { return (v * v) * (v * v) * v; };
@@ -147,5 +204,87 @@ namespace pbrt
 				std::max(AbsCosTheta(wi), AbsCosTheta(wo))) *
 			SchlickFresnel(Dot(wi, wh));
 		return diffuse + specular;
+	}
+	Spectrum FresnelSpecular::Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& sample, float* pdf, BxDFType* sampledType) const
+	{
+		float F = FrDielectric(CosTheta(wo), etaA, etaB);
+		if(sample[0] < F)
+		{
+			*wi = Vector3f(-wo.x, -wo.y, wo.z);
+			if (sampledType) *sampledType = BxDFType(BSDF_SPECULAR | BSDF_REFLECTION);
+			*pdf = F;
+			return F * R / AbsCosTheta(*wi);
+		}
+		else
+		{
+			bool entering = CosTheta(wo) > 0;
+			float etaI = entering ? etaA : etaB;
+			float etaT = entering ? etaB : etaA;
+			if (!Refract(wo, Faceforward(Normal3f(0, 0, 1), wo), etaI / etaT, wi))
+				return 0;
+			Spectrum ft = T * (1 - F);
+			if (mode == TransportMode::Radiance)
+				ft *= (etaI * etaI) / (etaT * etaT);
+			if (sampledType)
+				*sampledType = BxDFType(BSDF_SPECULAR | BSDF_TRANSMISSION);
+			*pdf = 1 - F;
+			return ft / AbsCosTheta(*wi);
+		}
+	}
+	Spectrum BSDF::Sample_f(const Vector3f& woWorld, Vector3f* wiWorld, const Point2f& u, float* pdf, BxDFType type, BxDFType* sampledType) const
+	{
+		int matchingComps = NumComponents(type);
+		if(matchingComps == 0)
+		{
+			*pdf = 0;
+			return { 0 };
+		}
+		int comp = std::min((int)std::floor(u[0] * matchingComps), matchingComps - 1);
+		BxDF* bxdf = nullptr;
+		int count = comp;
+		for(int i = 0; i < nBxDFs; ++i)
+			if(bxdfs[i]->MatchesFlags(type) && count-- == 0)
+			{
+				bxdf = bxdfs[i];
+				break;
+			}
+		Point2f uRemapped(u[0] * matchingComps - comp, u[1]);
+		Vector3f wo = WorldToLocal(woWorld), wi;
+		*pdf = 0;
+		if (sampledType) *sampledType = bxdf->type;
+		Spectrum f = bxdf->Sample_f(wo, &wi, uRemapped, pdf, sampledType);
+		if (*pdf == 0) return { 0 };
+		*wiWorld = LocalToWorld(wi);
+		if (!(bxdf->type & BSDF_SPECULAR) && matchingComps > 1)
+			for (int i = 0; i < nBxDFs; ++i)
+				if (bxdfs[i] != bxdf && bxdfs[i]->MatchesFlags(type))
+					*pdf += bxdfs[i]->Pdf(wo, wi);
+		if (matchingComps > 1) *pdf /= matchingComps;
+		if(!(bxdf->type & BSDF_SPECULAR) && matchingComps > 1)
+		{
+			bool reflect = Dot(*wiWorld, ng) * Dot(woWorld, ng) > 0;
+			f = 0.;
+			for (int i = 0; i < nBxDFs; ++i)
+				if (bxdfs[i]->MatchesFlags(type) &&
+					((reflect && (bxdfs[i]->type & BSDF_REFLECTION)) ||
+						(!reflect && (bxdfs[i]->type & BSDF_TRANSMISSION))))
+					f += bxdfs[i]->f(wo, wi);
+		}
+		return f;
+	}
+	float BSDF::Pdf(const Vector3f& woWorld, const Vector3f& wiWorld, BxDFType flags) const
+	{
+		if (nBxDFs == 0.f) return 0.f;
+		Vector3f wo = WorldToLocal(woWorld), wi = WorldToLocal(wiWorld);
+		if (wo.z == 0) return 0.;
+		float pdf = 0.f;
+		int matchingComps = 0;
+		for (int i = 0; i < nBxDFs; ++i)
+			if (bxdfs[i]->MatchesFlags(flags)) {
+				++matchingComps;
+				pdf += bxdfs[i]->Pdf(wo, wi);
+			}
+		float v = matchingComps > 0 ? pdf / matchingComps : 0.f;
+		return v;
 	}
 }

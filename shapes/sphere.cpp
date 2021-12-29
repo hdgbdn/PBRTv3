@@ -1,5 +1,6 @@
 #include "sphere.h"
 #include "efloat.h"
+#include "sampling.h"
 
 namespace pbrt
 {
@@ -134,7 +135,61 @@ namespace pbrt
 		return true;
 	}
 
-	float Sphere::Area()
+	Interaction Sphere::Sample(const Point2f& u) const
+	{
+		Point3f pObj = Point3f(0, 0, 0) + radius * UniformSampleSphere(u);
+		Interaction it;
+		it.n = Normalize((*ObjectToWorld)(Normal3f(pObj.x, pObj.y, pObj.z)));
+		if (reverseOrientation) it.n *= -1;
+		pObj *= radius / Distance(pObj, Point3f(0, 0, 0));
+		Vector3f pObjError = gamma(5) * Abs(static_cast<Vector3f>(pObj));
+			it.p = (*ObjectToWorld)(pObj, pObjError, &it.pError);
+		return it;
+	}
+
+	Interaction Sphere::Sample(const Interaction& ref, const Point2f& u) const
+	{
+		Point3f pCenter = (*ObjectToWorld)(Point3f(0, 0, 0));
+		Vector3f wc = Normalize(pCenter - ref.p);
+		Vector3f wcX, wcY;
+		CoordinateSystem(wc, &wcX, &wcY);
+		Point3f pOrigin = OffsetRayOrigin(ref.p, ref.pError, ref.n, pCenter - ref.p);
+		if (DistanceSquared(pOrigin, pCenter) <= radius * radius)
+			return Sample(u);
+		float sinThetaMax2 = radius * radius / DistanceSquared(ref.p, pCenter);
+		float cosThetaMax = std::sqrt(std::max(static_cast<float>(0), 1 - sinThetaMax2));
+		float cosTheta = (1 - u[0]) + u[0] * cosThetaMax;
+		float sinTheta = std::sqrt(std::max(static_cast<float>(0), 1 - cosTheta * cosTheta));
+		float phi = u[1] * 2 * Pi;
+		float dc = Distance(ref.p, pCenter);
+		float ds = dc * cosTheta - std::sqrt(std::max(static_cast<float>(0), radius * radius - dc * dc * sinTheta * sinTheta));
+		float cosAlpha = (dc * dc + radius * radius - ds * ds) / (2 * dc * radius);
+		float sinAlpha = std::sqrt(std::max(static_cast<float>(0), 1 - cosAlpha * cosAlpha));
+		Vector3f nWorld =
+			SphericalDirection(sinAlpha, cosAlpha, phi, -wcX, -wcY, -wc);
+		Point3f pWorld = pCenter + radius * Point3f(nWorld.x, nWorld.y, nWorld.z);
+		
+		Interaction it;
+		it.p = pWorld;
+		it.pError = gamma(5) * Abs((Vector3f)pWorld);
+		it.n = Normal3f(nWorld);
+		if (reverseOrientation) it.n *= -1;
+
+		return it;
+	}
+
+	float Sphere::Pdf(const Interaction& ref, const Vector3f& wi) const
+	{
+		Point3f pCenter = (*ObjectToWorld)(Point3f(0, 0, 0));
+		Point3f pOrigin = OffsetRayOrigin(ref.p, ref.pError, ref.n, pCenter - ref.p);
+		if (DistanceSquared(pOrigin, pCenter) <= radius * radius)
+			return Shape::Pdf(ref, wi);
+		float sinThetaMax2 = radius * radius / DistanceSquared(ref.p, pCenter);
+		float cosThetaMax = std::sqrt(std::max((float)0, 1 - sinThetaMax2));
+		return UniformConePdf(cosThetaMax);
+	}
+
+	float Sphere::Area() const
 	{
 		return phiMax * radius * (zMax - zMin);
 	}

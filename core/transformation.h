@@ -113,6 +113,9 @@ namespace pbrt
         Vector3<T> operator()(const Vector3<T>& v) const;
         template<typename T>
         Normal3<T> operator()(const Normal3<T>& n) const;
+        template <typename T>
+        inline Point3<T> operator()(const Point3<T>& p, const Vector3<T>& pError,
+            Vector3<T>* pTransError) const;
         Bounds3f operator()(const Bounds3f& b) const;
         Ray operator()(const Ray& r) const;
         inline Ray operator()(const Ray& r, Vector3f* oError,

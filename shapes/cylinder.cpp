@@ -106,8 +106,24 @@ namespace pbrt
 		return true;
 	}
 
+	Interaction Cylinder::Sample(const Point2f& u) const
+	{
+		float z = Lerp(u[0], zMin, zMax);
+		float phi = u[1] * phiMax;
+		Point3f pObj = Point3f(radius * std::cos(phi), radius * std::sin(phi),z);
+		Interaction it;
+		it.n = Normalize((*ObjectToWorld)(Normal3f(pObj.x, pObj.y, 0)));
+		if (reverseOrientation) it.n *= -1;
+		float hitRad = std::sqrt(pObj.x * pObj.x + pObj.y * pObj.y);
+		pObj.x *= radius / hitRad;
+		pObj.y *= radius / hitRad;
+		Vector3f pObjError = gamma(3) * Abs(Vector3f(pObj.x, pObj.y, 0));
+		it.p = (*ObjectToWorld)(pObj, pObjError, &it.pError);
+		return it;
+	}
 
-	float Cylinder::Area()
+
+	float Cylinder::Area() const
 	{
 		return (zMax - zMin) * radius * phiMax;
 	}

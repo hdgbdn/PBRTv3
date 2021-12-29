@@ -1,7 +1,6 @@
 #ifndef PBRT_CORE_SHAPE_H
 #define PBRT_CORE_SHAPE_H
 
-#include "pbrt.h"
 #include "transformation.h"
 
 namespace pbrt
@@ -18,7 +17,11 @@ namespace pbrt
 			bool testAlphaTexture = true) const;
 		virtual bool Intersect(const Ray& ray, float* tHit,
 			SurfaceInteraction* isect, bool testAlphaTexture = true) const = 0;
-		virtual float Area() = 0;
+		virtual float Area() const = 0;
+		virtual Interaction Sample(const Point2f& u) const = 0;
+		virtual Interaction Sample(const Interaction& ref, const Point2f& u) const { return Sample(u); }
+		virtual float Pdf(const Interaction&) const { return 1 / Area(); }
+		virtual float Pdf(const Interaction& ref, const Vector3f& wi) const;
 		const std::shared_ptr<Transform> ObjectToWorld;
 		const std::shared_ptr<Transform> WorldToObject;
 		const bool reverseOrientation;

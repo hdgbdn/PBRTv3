@@ -1,5 +1,6 @@
 #include "disk.h"
 #include "efloat.h"
+#include "sampling.h"
 
 namespace pbrt
 {
@@ -11,6 +12,22 @@ namespace pbrt
 	{
 		return Bounds3f(Point3f(-radius, -radius, height),
 			Point3f(radius, radius, height));
+	}
+
+	float Disk::Area() const
+	{
+		return phiMax * 0.5 * (radius * radius - innerRadius * innerRadius);
+	}
+
+	Interaction Disk::Sample(const Point2f& u) const
+	{
+		Point2f pd = ConcentricSampleDisk(u);
+		Point3f pObj(pd.x * radius, pd.y * radius, height);
+		Interaction it;
+		it.n = Normalize((*ObjectToWorld)(Normal3f(0, 0, 1)));
+		if (reverseOrientation) it.n *= -1;
+		it.p = (*ObjectToWorld)(pObj, Vector3f(0, 0, 0), &it.pError);
+		return it;
 	}
 
 	bool Disk::Intersect(const Ray& r, float* tHit, SurfaceInteraction* isect, bool testAlphaTexture) const
@@ -67,10 +84,4 @@ namespace pbrt
 		if (phi > phiMax) return false;
 		return true;
 	}
-
-	float Disk::Area()
-	{
-		return phiMax * 0.5 * (radius * radius - innerRadius * innerRadius);
-	}
-
 }

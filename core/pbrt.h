@@ -23,6 +23,8 @@ namespace pbrt
 #define PBRT_L1_CACHE_LINE_SIZE 64
 #endif
 #define ALLOCA(TYPE, COUNT) (TYPE *) alloca((COUNT) * sizeof(TYPE))
+	static constexpr float MachineEpsilon =
+		std::numeric_limits<float>::epsilon() * 0.5;
 
 	struct Options {};
 
@@ -242,6 +244,10 @@ namespace pbrt
 		v |= v >> 4;    v |= v >> 8;
 		v |= v >> 16;
 		return v + 1;
+	}
+
+	inline constexpr float gamma(int n) {
+		return (n * MachineEpsilon) / (1 - n * MachineEpsilon);
 	}
 
 	inline float GammaCorrect(float value) {

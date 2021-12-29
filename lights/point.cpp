@@ -17,6 +17,10 @@ namespace pbrt
 		*vis = VisibilityTester(ref, Interaction(pLight, ref.time, mediumInterface));
 		return I / DistanceSquared(pLight, ref.p);
 	}
+	float PointLight::Pdf_Li(const Interaction& ref, const Vector3f& wi) const
+	{
+		return 0.0f;
+	}
 }
 
 

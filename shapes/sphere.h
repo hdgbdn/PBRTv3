@@ -1,8 +1,6 @@
 #ifndef PBRT_SHAPE_SPHERE_H
 #define PBRT_SHAPE_SPHERE_H
 
-#include "pbrt.h"
-#include "transformation.h"
 #include "shape.h"
 
 namespace pbrt
@@ -16,7 +14,10 @@ namespace pbrt
 		Bounds3f ObjectBound() const override;
 		bool Intersect(const Ray& ray, float* tHit, SurfaceInteraction* isect, bool testAlphaTexture) const override;
 		bool IntersectP(const Ray& ray, bool testAlphaTexture) const override;
-		float Area() override;
+		float Area() const override;
+		Interaction Sample(const Point2f& u) const override;
+		Interaction Sample(const Interaction& ref, const Point2f& u) const override;
+		float Pdf(const Interaction& ref, const Vector3f& wi) const override;
 		const float radius;
 		const float zMin, zMax;
 		const float thetaMin, thetaMax, phiMax;

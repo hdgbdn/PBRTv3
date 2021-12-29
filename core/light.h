@@ -28,6 +28,7 @@ namespace pbrt
 		virtual Spectrum Sample_Li(const Interaction& ref, const Point2f& u,
 			Vector3f* wi, float* pdf,
 			VisibilityTester* vis) const = 0;
+		virtual float Pdf_Li(const Interaction& ref, const Vector3f& wi) const = 0;
 		const int flags;
 		const int nSamples;
 		const MediumInterface mediumInterface;

@@ -1,5 +1,6 @@
 #include "triangle.h"
 #include "texture.h"
+#include "sampling.h"
 
 namespace pbrt
 {
@@ -170,7 +171,27 @@ namespace pbrt
             isect->n = isect->shading.n = -isect->n;
     }
 
-    float Triangle::Area()
+    Interaction Triangle::Sample(const Point2f& u) const
+    {
+        Point2f b = UniformSampleTriangle(u);
+        const Point3f& p0 = mesh->p[v[0]];
+        const Point3f& p1 = mesh->p[v[1]];
+        const Point3f& p2 = mesh->p[v[2]];
+        Interaction it;
+        it.p = b[0] * p0 + b[1] * p1 + (1 - b[0] - b[1]) * p2;
+        if (mesh->n)
+            it.n = Normalize(b[0] * mesh->n[v[0]] +
+                b[1] * mesh->n[v[1]] +
+                (1 - b[0] - b[1]) * mesh->n[v[2]]);
+        else
+            it.n = Normalize(Normal3f(Cross(p1 - p0, p2 - p0)));
+        if (reverseOrientation) it.n *= -1;
+        Point3f pAbsSum = Abs(b[0] * p0) + Abs(b[1] * p1) +
+            Abs((1 - b[0] - b[1]) * p2);
+        it.pError = gamma(6) * Vector3f(pAbsSum);
+    }
+
+    float Triangle::Area() const
     {
         Point3f p0 = mesh->p[v[0]], p1 = mesh->p[v[1]], p2 = mesh->p[v[2]];
         return 0.5 * Cross(p1 - p0, p2 - p0).Length();

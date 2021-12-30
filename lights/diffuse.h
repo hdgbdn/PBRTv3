@@ -13,6 +13,8 @@ namespace pbrt
 			int nSamples, const std::shared_ptr<Shape>& shape);
 		Spectrum L(const Interaction& intr, const Vector3f& w) const override;
 		Spectrum Power() const override;
+		Spectrum Sample_Li(const Interaction& ref, const Point2f& u, Vector3f* wi, float* pdf, VisibilityTester* vis) const override;
+		float Pdf_Li(const Interaction& ref, const Vector3f& wi) const override;
 	protected:
 		const Spectrum Lemit;
 		std::shared_ptr<Shape> shape;

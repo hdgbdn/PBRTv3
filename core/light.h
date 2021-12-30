@@ -66,7 +66,7 @@ namespace pbrt
 		Interaction p0, p1;
 	};
 
-	class AreaLight : Light
+	class AreaLight : public Light
 	{
 	public:
 		AreaLight(const Transform& LightToWorld, const MediumInterface& medium, int nSamples)

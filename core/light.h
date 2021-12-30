@@ -1,8 +1,6 @@
 #ifndef PBRT_CORE_LIGHT_H
 #define PBRT_CORE_LIGHT_H
 
-#include "pbrt.h"
-#include "geometry.h"
 #include "medium.h"
 #include "scene.h"
 #include "transformation.h"

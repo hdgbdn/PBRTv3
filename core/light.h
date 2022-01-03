@@ -36,6 +36,7 @@ namespace pbrt
 	class VisibilityTester
 	{
 	public:
+		VisibilityTester() = default;
 		VisibilityTester(const Interaction& p0, const Interaction& p1)
 			:p0(p0), p1(p1) {}
 		const Interaction& P0() const { return p0; }

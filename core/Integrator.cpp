@@ -120,4 +120,94 @@ namespace pbrt
 				arena, handleMedia);
 	}
 
+	Spectrum EstimateDirect(const Interaction& it, const Point2f& uScattering, const Light& light, const Point2f& uLight, const Scene& scene, Sampler& sampler, MemoryArena& arena, bool handleMedia, bool specular)
+	{
+		BxDFType bsdfFlags =
+			specular ? BSDF_ALL : BxDFType(BSDF_ALL & ~BSDF_SPECULAR);
+		Spectrum Ld(0.f);
+
+		// Sample light
+		Vector3f wi;
+		float lightPdf = 0, scatteringPdf = 0;
+		VisibilityTester visibility;
+		Spectrum Li = light.Sample_Li(it, uLight, &wi, &lightPdf, &visibility);
+		if (lightPdf > 0 && !Li.IsBlack())
+		{
+			Spectrum f;
+			if (it.IsSurfaceInteraction())
+			{
+				const SurfaceInteraction& isect = static_cast<const SurfaceInteraction&>(it);
+				f = isect.bsdf->f(isect.wo, wi, bsdfFlags) * AbsDot(wi, isect.shading.n);
+				scatteringPdf = isect.bsdf->Pdf(isect.wo, wi, bsdfFlags);
+			}
+			else
+			{
+				// TODO volume scattering
+			}
+
+			if (!f.IsBlack())
+			{
+				if (handleMedia)
+					Li *= visibility.Tr(scene, sampler);
+				else if (!visibility.Unoccluded(scene))
+					Li = Spectrum(0.f);
+				if (!Li.IsBlack()) {
+					if (IsDeltaLight(light.flags))
+						Ld += f * Li / lightPdf;
+					else {
+						float weight = PowerHeuristic(1, lightPdf, 1, scatteringPdf);
+						Ld += f * Li * weight / lightPdf;
+					}
+				}
+			}
+		}
+
+		// Sample BSDF
+		if (!IsDeltaLight(light.flags))
+		{
+			Spectrum f;
+			bool sampledSpecular = false;
+			if (it.IsSurfaceInteraction())
+			{
+				BxDFType sampledType;
+				const SurfaceInteraction& isect = static_cast<const SurfaceInteraction&>(it);
+				f = isect.bsdf->Sample_f(isect.wo, &wi, uScattering, &scatteringPdf,
+					bsdfFlags, &sampledType);
+				f *= AbsDot(wi, isect.shading.n);
+				sampledSpecular = sampledType & BSDF_SPECULAR;
+			}
+			else
+			{
+				// TODO volume scattering
+			}
+			if (!f.IsBlack() && scatteringPdf > 0.f)
+			{
+				float weight = 1;
+				if (!sampledSpecular)
+				{
+					lightPdf = light.Pdf_Li(it, wi);
+					if (lightPdf == 0)
+						return Ld;
+					weight = PowerHeuristic(1, scatteringPdf, 1, lightPdf);
+				}
+				SurfaceInteraction lightIsect;
+				Ray ray = it.SpawnRay(wi);
+				Spectrum Tr(1.f);
+				bool foundSurfaceInteraction = handleMedia
+					? scene.IntersectTr(ray, sampler, &lightIsect, &Tr)
+					: scene.Intersect(ray, &lightIsect);
+				Spectrum Li(0.f);
+				if (foundSurfaceInteraction)
+				{
+					if (lightIsect.primitive->GetAreaLight() == &light)
+						Li = lightIsect.Le(-wi);
+				}
+				else
+					Li = light.Le(ray);
+				if (!Li.IsBlack())
+					Ld += f * Li * Tr * weight / scatteringPdf;
+			}
+		}
+		return Ld;
+	}
 }

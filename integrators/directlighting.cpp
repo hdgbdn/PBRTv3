@@ -48,5 +48,10 @@ namespace pbrt
 			else
 				L += UniformSampleOneLight(isect, scene, arena, sampler);
 		}
+		if (depth + 1 < maxDepth) {
+			L += SpecularReflect(ray, isect, scene, sampler, arena, depth);
+			L += SpecularTransmit(ray, isect, scene, sampler, arena, depth);
+		}
+		return L;
 	}
 }

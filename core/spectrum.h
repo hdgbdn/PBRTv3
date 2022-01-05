@@ -141,13 +141,6 @@ namespace pbrt
 			return *this;
 		}
 
-		friend inline CoefficientSpectrum operator*(float a,
-		                                            const CoefficientSpectrum& s)
-		{
-			//DCHECK(!std::isnan(a) && !s.HasNaNs());
-			return s * a;
-		}
-
 		CoefficientSpectrum operator/(float a) const
 		{
 			//CHECK_NE(a, 0);

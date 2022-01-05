@@ -3,50 +3,35 @@
 
 #include "reflection.h"
 #include "medium.h"
+#include "material.h"
 
 namespace pbrt
 {
 	struct Interaction
 	{
-		Interaction() : time(0) {}
+		Interaction();
+
 		Interaction(const Point3f& p, const Normal3f& n,
-			const Vector3f& pError, const Vector3f& wo, float time,
-			const MediumInterface& mediumInterface) :
-			p(p), time(0), pError(pError), wo(wo), n(n),
-			mediumInterface(mediumInterface) {}
-		bool IsSurfaceInteraction() const
-		{
-			return n != Normal3f();
-		}
-		Ray SpawnRay(const Vector3f& d) const {
-			Point3f o = OffsetRayOrigin(p, pError, n, d);
-			return Ray(o, d, Infinity, time, GetMedium(d));
-		}
-		Ray SpawnRayTo(const Point3f& p2) const {
-			Point3f origin = OffsetRayOrigin(p, pError, n, p2 - p);
-			Vector3f d = p2 - origin;
-			return Ray(origin, d, 1 - ShadowEpsilon, time, GetMedium(d));
-		}
-		Ray SpawnRayTo(const Interaction& it) const {
-			Point3f origin = OffsetRayOrigin(p, pError, n, it.p - p);
-			Point3f target = OffsetRayOrigin(it.p, it.pError, it.n, origin - it.p);
-			Vector3f d = target - origin;
-			return Ray(origin, d, 1 - ShadowEpsilon, time, GetMedium(d));
-		}
-		const Medium* GetMedium() const {
-			assert(mediumInterface.inside == mediumInterface.outside);
-			return mediumInterface.inside;
-		}
-		const Medium* GetMedium(const Vector3f& w) const {
-			return Dot(w, n) > 0 ? mediumInterface.outside :
-				mediumInterface.inside;
-		}
+		            const Vector3f& pError, const Vector3f& wo, float time,
+		            const MediumInterface& mediumInterface);
+
+		bool IsSurfaceInteraction() const;
+
+		Ray SpawnRay(const Vector3f& d) const;
+
+		Ray SpawnRayTo(const Point3f& p2) const;
+
+		Ray SpawnRayTo(const Interaction& it) const;
+
+		const Medium* GetMedium() const;
+
+		const Medium* GetMedium(const Vector3f& w) const;
+
 		Interaction(const Point3f& p, const Vector3f& wo, float time,
-			const MediumInterface& mediumInterface)
-			: p(p), time(time), wo(wo), mediumInterface(mediumInterface) {}
+		            const MediumInterface& mediumInterface);
+
 		Interaction(const Point3f& p, float time,
-			const MediumInterface& mediumInterface)
-			: p(p), time(time), mediumInterface(mediumInterface) {}
+		            const MediumInterface& mediumInterface);
 		Point3f p;
 		float time;
 		Vector3f pError;
@@ -57,7 +42,7 @@ namespace pbrt
 	class SurfaceInteraction : public Interaction
 	{
 	public:
-		SurfaceInteraction() = default;
+		SurfaceInteraction();
 		SurfaceInteraction(const Point3f& p, const Vector3f& pError,
 			const Point2f& uv, const Vector3f& wo,
 			const Vector3f& dpdu, const Vector3f& dpdv,

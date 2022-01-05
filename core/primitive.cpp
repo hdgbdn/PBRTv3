@@ -1,5 +1,6 @@
 #include "primitive.h"
 #include "material.h"
+#include "shape.h"
 
 namespace pbrt
 {

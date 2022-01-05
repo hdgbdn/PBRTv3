@@ -1,4 +1,5 @@
 #include "transformation.h"
+#include "interaction.h"
 
 namespace pbrt
 {
@@ -285,5 +286,11 @@ namespace pbrt
 		return Scale(invTanAng, invTanAng, 1) * Transform(persp);
 	}
 
-
+	inline SurfaceInteraction Transform::operator()(const SurfaceInteraction& si) const
+	{
+		SurfaceInteraction ret;
+		//TODO Transform p and pError in SurfaceInteraction
+		//TODO Transform remaining members of SurfaceInteraction
+		return ret;
+	}
 }

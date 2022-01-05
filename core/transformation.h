@@ -3,7 +3,6 @@
 
 #include "geometry.h"
 #include "pbrt.h"
-#include "interaction.h"
 
 namespace pbrt
 {
@@ -184,15 +183,6 @@ namespace pbrt
         ret = Union(ret, M(Point3f(b.pMax.x, b.pMax.y, b.pMax.z)));
         return ret;
     }
-
-    inline SurfaceInteraction Transform::operator()(const SurfaceInteraction& si) const
-    {
-        SurfaceInteraction ret;
-        //TODO Transform p and pError in SurfaceInteraction
-        //TODO Transform remaining members of SurfaceInteraction
-        return ret;
-    }
-
 
     inline Transform Transform::operator*(const Transform& t2) const
     {

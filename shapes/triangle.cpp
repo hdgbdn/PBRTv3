@@ -189,6 +189,7 @@ namespace pbrt
         Point3f pAbsSum = Abs(b[0] * p0) + Abs(b[1] * p1) +
             Abs((1 - b[0] - b[1]) * p2);
         it.pError = gamma(6) * Vector3f(pAbsSum);
+        return it;
     }
 
     float Triangle::Area() const

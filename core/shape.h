@@ -2,6 +2,7 @@
 #define PBRT_CORE_SHAPE_H
 
 #include "transformation.h"
+#include "interaction.h"
 
 namespace pbrt
 {

@@ -343,7 +343,7 @@ namespace pbrt
 		else
 			*v2 = Vector3<T>(-v1.z, 0, v1.x) /
 				std::sqrt(v1.x * v1.x + v1.z * v1.z);
-		*v3 = Cross(v1, v2);
+		*v3 = Cross(v1, *v2);
 	}
 
 	template <typename T>
@@ -541,6 +541,11 @@ namespace pbrt
 			return *this;
 		}
 
+		Point3<T> operator+(const Point3<T>& v) const
+		{
+			return Point3<T>(x + v.x, y + v.y, z + v.z);
+		}
+
 		Point3<T> operator+(const Vector3<T>& v) const
 		{
 			return Point3<T>(x + v.x, y + v.y, z + v.z);
@@ -589,6 +594,25 @@ namespace pbrt
 			x *= s;
 			y *= s;
 			z *= s;
+			return *this;
+		}
+
+		template <typename U>
+		Point3<T> operator/(U f) const
+		{
+			//CHECK_NE(f, 0);
+			float inv = (float)1 / f;
+			return Point3<T>(inv * x, inv * y, inv * z);
+		}
+
+		template <typename U>
+		Point3<T>& operator/=(U f)
+		{
+			//CHECK_NE(f, 0);
+			float inv = (float)1 / f;
+			x *= inv;
+			y *= inv;
+			z *= inv;
 			return *this;
 		}
 
@@ -962,11 +986,10 @@ namespace pbrt
 			pMax(std::max(p1.x, p2.x), std::max(p1.y, p2.y))
 		{
 		}
+
 		template <typename U>
-		explicit Bounds2(const Bounds2<U>& p)
-		{
-			pMin = (T)p.pMin;
-			pMax = (T)p.pMax;
+		explicit operator Bounds2<U>() const {
+			return Bounds2<U>((Point2<U>)pMin, (Point2<U>)pMax);
 		}
 
 		Vector2<T> Diagonal() const;
@@ -992,7 +1015,7 @@ namespace pbrt
 		template <typename T>
 		Vector2<T> Offset(const Point2<T>& p) const
 		{
-			Vector3<T> o = p - pMin;
+			Vector2<T> o = p - pMin;
 			if (pMax.x > pMin.x) o.x /= pMax.x - pMin.x;
 			if (pMax.y > pMin.y) o.y /= pMax.y - pMin.y;
 			return o;
@@ -1009,18 +1032,19 @@ namespace pbrt
 	using Bounds2i = Bounds2<int>;
 
 	template <typename T>
-	Bounds2<T> Intersect(const Bounds2<T>& b1, const Bounds2<T>& b2) {
+	Bounds2<T> Intersect(const Bounds2<T>& b1, const Bounds2<T>& b2)
+	{
 		return Bounds2<T>(Point2<T>(std::max(b1.pMin.x, b2.pMin.x),
-			std::max(b1.pMin.y, b2.pMin.y)),
-			Point2<T>(std::min(b1.pMax.x, b2.pMax.x),
-				std::min(b1.pMax.y, b2.pMax.y)));
+		                            std::max(b1.pMin.y, b2.pMin.y)),
+		                  Point2<T>(std::min(b1.pMax.x, b2.pMax.x),
+		                            std::min(b1.pMax.y, b2.pMax.y)));
 	}
 
 	template <typename T>
 	bool InsideExclusive(const Point2<T>& p, const Bounds2<T>& b)
 	{
 		return (
-			p.x >= b.pMin.x && p.x < b.pMax.x&&
+			p.x >= b.pMin.x && p.x < b.pMax.x &&
 			p.y >= b.pMin.y && p.y < b.pMax.y);
 	}
 
@@ -1228,14 +1252,16 @@ namespace pbrt
 		);
 	}
 
-	template <typename T> Bounds3<T>
-	Intersect(const Bounds3<T>& b1, const Bounds3<T>& b2) {
+	template <typename T>
+	Bounds3<T>
+	Intersect(const Bounds3<T>& b1, const Bounds3<T>& b2)
+	{
 		return Bounds3<T>(Point3<T>(std::max(b1.pMin.x, b2.pMin.x),
-			std::max(b1.pMin.y, b2.pMin.y),
-			std::max(b1.pMin.z, b2.pMin.z)),
-			Point3<T>(std::min(b1.pMax.x, b2.pMax.x),
-				std::min(b1.pMax.y, b2.pMax.y),
-				std::min(b1.pMax.z, b2.pMax.z)));
+		                            std::max(b1.pMin.y, b2.pMin.y),
+		                            std::max(b1.pMin.z, b2.pMin.z)),
+		                  Point3<T>(std::min(b1.pMax.x, b2.pMax.x),
+		                            std::min(b1.pMax.y, b2.pMax.y),
+		                            std::min(b1.pMax.z, b2.pMax.z)));
 	}
 
 	template <typename T>
@@ -1329,16 +1355,18 @@ namespace pbrt
 	}
 
 	inline Point3f OffsetRayOrigin(const Point3f& p, const Vector3f& pError,
-		const Normal3f& n, const Vector3f& w) {
+	                               const Normal3f& n, const Vector3f& w)
+	{
 		float d = Dot(Abs(n), pError);
 		Vector3f offset = d * Vector3f(n);
 		if (Dot(w, n) < 0)
 			offset = -offset;
 		Point3f po = p + offset;
-			for (int i = 0; i < 3; ++i) {
-				if (offset[i] > 0)      po[i] = NextFloatUp(po[i]);
-				else if (offset[i] < 0) po[i] = NextFloatDown(po[i]);
-			}
+		for (int i = 0; i < 3; ++i)
+		{
+			if (offset[i] > 0) po[i] = NextFloatUp(po[i]);
+			else if (offset[i] < 0) po[i] = NextFloatDown(po[i]);
+		}
 
 		return po;
 	}

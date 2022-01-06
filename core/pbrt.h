@@ -13,11 +13,11 @@
 namespace pbrt
 {
 #ifdef _MSC_VER
-	static constexpr float MaxFloat = std::numeric_limits<float>::max();
+	static constexpr float Maxfloat = std::numeric_limits<float>::max();
 	static constexpr float Infinity = std::numeric_limits<float>::infinity();
 #else
-	static PBRT_CONSTEXPR Float MaxFloat = std::numeric_limits<Float>::max();
-	static PBRT_CONSTEXPR Float Infinity = std::numeric_limits<Float>::infinity();
+	static PBRT_CONSTEXPR float Maxfloat = std::numeric_limits<float>::max();
+	static PBRT_CONSTEXPR float Infinity = std::numeric_limits<float>::infinity();
 #endif
 #ifndef PBRT_L1_CACHE_LINE_SIZE
 #define PBRT_L1_CACHE_LINE_SIZE 64
@@ -62,7 +62,7 @@ namespace pbrt
 	class MediumInterface;
 	class BSDF;
 	class BSSRDF;
-	class EFloat;
+	class Efloat;
 
 	template <typename T>
 	class Texture;
@@ -96,6 +96,10 @@ namespace pbrt
 
 	// material
 	class MixMaterial;
+
+	// memory
+	template <typename T, int logBlockSize = 2>
+	class BlockedArray;
 
 	template <typename T>
 	inline T Mod(T a, T b)
@@ -162,7 +166,7 @@ namespace pbrt
 		return Clamp(first - 1, 0, size - 2);
 	}
 
-	inline uint32_t FloatToBits(float f) {
+	inline uint32_t floatToBits(float f) {
 		uint32_t ui;
 		memcpy(&ui, &f, sizeof(float));
 		return ui;
@@ -192,7 +196,7 @@ namespace pbrt
 		if (v == -0.f) v = 0.f;
 
 		// Advance _v_ to next higher float
-		uint32_t ui = FloatToBits(v);
+		uint32_t ui = floatToBits(v);
 		if (v >= 0)
 			++ui;
 		else
@@ -204,7 +208,7 @@ namespace pbrt
 		// Handle infinity and positive zero for _NextFloatDown()_
 		if (std::isinf(v) && v < 0.) return v;
 		if (v == 0.f) v = -0.f;
-		uint32_t ui = FloatToBits(v);
+		uint32_t ui = floatToBits(v);
 		if (v > 0)
 			--ui;
 		else
@@ -260,6 +264,60 @@ namespace pbrt
 		if (value <= 0.04045f)
 			return value * 1.f / 12.92f;
 		return std::pow((value + 0.055f) * 1.f / 1.055f, (float)2.4f);
+	}
+
+	inline float ErfInv(float x) {
+		float w, p;
+		x = Clamp(x, -.99999f, .99999f);
+		w = -std::log((1 - x) * (1 + x));
+		if (w < 5) {
+			w = w - 2.5f;
+			p = 2.81022636e-08f;
+			p = 3.43273939e-07f + p * w;
+			p = -3.5233877e-06f + p * w;
+			p = -4.39150654e-06f + p * w;
+			p = 0.00021858087f + p * w;
+			p = -0.00125372503f + p * w;
+			p = -0.00417768164f + p * w;
+			p = 0.246640727f + p * w;
+			p = 1.50140941f + p * w;
+		}
+		else {
+			w = std::sqrt(w) - 3;
+			p = -0.000200214257f;
+			p = 0.000100950558f + p * w;
+			p = 0.00134934322f + p * w;
+			p = -0.00367342844f + p * w;
+			p = 0.00573950773f + p * w;
+			p = -0.0076224613f + p * w;
+			p = 0.00943887047f + p * w;
+			p = 1.00167406f + p * w;
+			p = 2.83297682f + p * w;
+		}
+		return p * x;
+	}
+
+	inline float Erf(float x) {
+		// constants
+		float a1 = 0.254829592f;
+		float a2 = -0.284496736f;
+		float a3 = 1.421413741f;
+		float a4 = -1.453152027f;
+		float a5 = 1.061405429f;
+		float p = 0.3275911f;
+
+		// Save the sign of x
+		int sign = 1;
+		if (x < 0) sign = -1;
+		x = std::abs(x);
+
+		// A&S formula 7.1.26
+		float t = 1 / (1 + p * x);
+		float y =
+			1 -
+			(((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * std::exp(-x * x);
+
+		return sign * y;
 	}
 }
 

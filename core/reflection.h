@@ -244,7 +244,6 @@ namespace pbrt
 		Spectrum f(const Vector3f& wo, const Vector3f& wi) const override;
 		Spectrum Sample_f(const Vector3f& wo, Vector3f* wi, const Point2f& u, float* pdf,
 		                  BxDFType* sampledType) const override;
-		virtual Vector3f Sample_wh(const Vector3f& wo, const Point2f& u) const = 0;
 		float Pdf(const Vector3f& wo, const Vector3f& wi) const override;
 	private:
 		const Spectrum R;

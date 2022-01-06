@@ -33,7 +33,7 @@ namespace pbrt
 	                                   const Bounds2f& screenWindow, float shutterOpen, float shutterClose, float lensr,
 	                                   float focald, Film* film, const Medium* medium)
 		: Camera(CameraToWorld, shutterOpen, shutterClose, film, medium),
-		  CameraToScreen(CameraToScreen), lensRadius(lensr), focalDistance(focald);
+		  CameraToScreen(CameraToScreen), lensRadius(lensr), focalDistance(focald)
 	{
 		ScreenToRaster = Scale(film->fullResolution.x,
 			film->fullResolution.y, 1) *

@@ -2,26 +2,23 @@
 #define PBRT_CORE_LIGHT_H
 
 #include "medium.h"
-#include "scene.h"
 #include "transformation.h"
+#include "interaction.h"
 
 namespace pbrt
 {
 	enum class LightFlags : int {
 		DeltaPosition = 1, DeltaDirection = 2, Area = 4, Infinite = 8
 	};
-	inline bool IsDeltaLight(int flags)
-	{
-		return flags & (int)LightFlags::DeltaPosition ||
-			flags & (int)LightFlags::DeltaDirection;
-	}
+	inline bool IsDeltaLight(int flags);
+
 	class Light
 	{
 	public:
 		Light(int flags, const Transform& LightToWorld, const MediumInterface& mediumInterface,
 			int nSamples = 1);
 		virtual Spectrum Power() const = 0;
-		virtual void Preprocess(const Scene& scene) { };
+		virtual void Preprocess(const Scene& scene);;
 		virtual Spectrum Le(const RayDifferential& ray) const;
 		virtual Spectrum Sample_Li(const Interaction& ref, const Point2f& u,
 			Vector3f* wi, float* pdf,
@@ -36,33 +33,14 @@ namespace pbrt
 	class VisibilityTester
 	{
 	public:
-		VisibilityTester() = default;
-		VisibilityTester(const Interaction& p0, const Interaction& p1)
-			:p0(p0), p1(p1) {}
-		const Interaction& P0() const { return p0; }
-		const Interaction& P1() const { return p1; }
-		bool Unoccluded(const Scene& scene) const
-		{
-			return !scene.IntersectP(p0.SpawnRayTo(p1));
-		}
-		Spectrum Tr(const Scene& scene, Sampler& sampler) const
-		{
-			Ray ray(p0.SpawnRayTo(p1));
-			Spectrum Tr(1.f);
-			while(true)
-			{
-				SurfaceInteraction isect;
-				bool hitSurface = scene.Intersect(ray, &isect);
-				if (hitSurface && isect.primitive->GetMaterial() != nullptr)
-					return Spectrum(0.f);
-				if (ray.medium)
-					Tr *= ray.medium->Tr(ray, sampler);
-				if (!hitSurface)
-					break;
-				ray = isect.SpawnRayTo(p1);
-			}
-			return Tr;
-		}
+		VisibilityTester();
+		VisibilityTester(const Interaction& p0, const Interaction& p1);
+		const Interaction& P0() const;
+		const Interaction& P1() const;
+
+		bool Unoccluded(const Scene& scene) const;
+
+		Spectrum Tr(const Scene& scene, Sampler& sampler) const;
 	private:
 		Interaction p0, p1;
 	};
@@ -70,8 +48,7 @@ namespace pbrt
 	class AreaLight : public Light
 	{
 	public:
-		AreaLight(const Transform& LightToWorld, const MediumInterface& medium, int nSamples)
-			: Light((int)LightFlags::Area, LightToWorld, medium, nSamples) { }
+		AreaLight(const Transform& LightToWorld, const MediumInterface& medium, int nSamples);
 		virtual Spectrum L(const Interaction& intr, const Vector3f& w) const = 0;
 	};
 }

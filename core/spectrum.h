@@ -97,7 +97,7 @@ namespace pbrt
 			return ret;
 		}
 		CoefficientSpectrum& operator*=(const CoefficientSpectrum& sp) {
-			DCHECK(!sp.HasNaNs());
+			//DCHECK(!sp.HasNaNs());
 			for (int i = 0; i < nSpectrumSamples; ++i) c[i] *= sp.c[i];
 			return *this;
 		}
@@ -107,7 +107,7 @@ namespace pbrt
 		{
 			CoefficientSpectrum ret;
 			for (int i = 0; i < nSpectrumSamples; ++i)
-				ret.c[i] = Clamp(c[i], low, high);
+				ret.c[i] = pbrt::Clamp(c[i], low, high);
 			return ret;
 		}
 

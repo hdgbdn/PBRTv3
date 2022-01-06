@@ -23,7 +23,7 @@ namespace pbrt
 			else
 			{
 				for (int i = 1; i < n + 1; ++i)
-					cdf[i] / funcInt;
+					cdf[i] /= funcInt;
 			}
 		}
 		int Count() const { return func.size(); }

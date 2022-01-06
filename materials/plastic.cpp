@@ -1,6 +1,7 @@
 #include "plastic.h"
 #include "memory.h"
 #include "interaction.h"
+#include "microfacet.h"
 #include "texture.h"
 
 namespace pbrt

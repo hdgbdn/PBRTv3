@@ -1,6 +1,7 @@
 #include "reflection.h"
 #include "sampling.h"
 #include "microfacet.h"
+#include "interaction.h"
 
 namespace pbrt
 {
@@ -369,6 +370,7 @@ namespace pbrt
 				(reflect && (bxdfs[i]->type && BSDF_REFLECTION)) ||
 				(!reflect && (bxdfs[i]->type && BSDF_TRANSMISSION)))
 				f += bxdfs[i]->f(wo, wi);
+		return f;
 	}
 
 	Spectrum BSDF::rho(int nSamples, const Point2f* samples1, const Point2f* samples2, BxDFType flags) const

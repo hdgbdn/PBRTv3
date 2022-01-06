@@ -146,7 +146,7 @@ namespace pbrt
         T zp = m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z + m.m[2][3];
         T wp = m.m[3][0] * x + m.m[3][1] * y + m.m[3][2] * z + m.m[3][3];
         if (wp == 1) return Point3<T>(xp, yp, zp);
-        else return Point3<T>(xp, yp, zp) / wp;
+    	return Point3<T>(xp, yp, zp) / wp;
     }
 
     template <typename T>

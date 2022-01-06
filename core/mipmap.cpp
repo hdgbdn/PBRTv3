@@ -1,4 +1,5 @@
 #include "mipmap.h"
+#include "spectrum.h"
 
 namespace pbrt
 {

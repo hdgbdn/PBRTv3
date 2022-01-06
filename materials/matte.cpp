@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "reflection.h"
 #include "texture.h"
+#include "interaction.h"
 
 namespace pbrt
 {

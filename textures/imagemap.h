@@ -54,7 +54,7 @@ namespace pbrt
 		} 
 
 		static MIPMap<Tmemory>* GetTexture(const std::string& filename,
-		           bool doTrilinear, Float maxAniso, ImageWrap wrap, Float scale,
+		           bool doTrilinear, float maxAniso, ImageWrap wrap, float scale,
 		           bool gamma)
 		{
 			TexInfo texInfo(filename, doTrilinear, maxAniso, wrap, scale, gamma);

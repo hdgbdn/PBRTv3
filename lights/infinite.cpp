@@ -1,4 +1,5 @@
 #include "infinite.h"
+#include "scene.h"
 
 namespace pbrt
 {

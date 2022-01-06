@@ -2,7 +2,6 @@
 #define PBRT_CORE_MIPMAP_H
 
 #include "pbrt.h"
-#include "texture.h"
 #include "parallel.h"
 #include "memory.h"
 

@@ -3,7 +3,7 @@
 
 #include "pbrt.h"
 #include "geometry.h"
-#include <cctype>
+#include "spectrum.h"
 
 namespace pbrt
 {

@@ -1,7 +1,5 @@
 #include "pbrt.h"
 #include "api.h"
-#include "parser.h"
-#include "scene.h"
 
 using namespace pbrt;
 

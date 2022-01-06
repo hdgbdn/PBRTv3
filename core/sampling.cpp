@@ -44,4 +44,63 @@ namespace pbrt
 		}
 	}
 
+	Point2f RejectionSampleDisk(RNG& rng)
+	{
+		Point2f p;
+		do
+		{
+			p.x = 1 - 2 * rng.UniformFloat();
+			p.y = 1 - 2 * rng.UniformFloat();
+		} while (p.x * p.x + p.y * p.y > 1);
+		return p;
+	}
+
+	Vector3f UniformSampleHemisphere(const Point2f& u)
+	{
+		float z = u[0];
+		float r = std::sqrt(std::max((float)0, (float)1. - z * z));
+		float phi = 2 * Pi * u[1];
+		return {r * std::cos(phi), r * std::sin(phi), z};
+	}
+
+	Vector3f UniformSampleSphere(const Point2f& u)
+	{
+		float z = 1 - 2 * u[0];
+		float r = std::sqrt(std::max((float)0, (float)1. - z * z));
+		float phi = 2 * Pi * u[1];
+		return {r * std::cos(phi), r * std::sin(phi), z};
+	}
+
+	Point2f UniformSampleDisk(const Point2f& u)
+	{
+		float r = std::sqrt(u[0]);
+		float theta = 2 * Pi * u[1];
+		return { r * std::cos(theta), r * std::sin(theta) };
+	}
+
+	Point2f ConcentricSampleDisk(const Point2f& u)
+	{
+		Point2f uOffset = 2.f * u - Vector2f(1, 1);
+		if (uOffset.x == 0 && uOffset.y == 0) return {0, 0};
+		float theta, r;
+		if (std::abs(uOffset.x) > std::abs(uOffset.y))
+		{
+			r = uOffset.x;
+			theta = PiOver4 * (uOffset.y / uOffset.x);
+		}
+		else
+		{
+			r = uOffset.y;
+			theta = PiOver2 - PiOver4 * (uOffset.x / uOffset.y);
+		}
+		return r * Point2f(std::cos(theta), std::sin(theta));
+	}
+
+	Vector3f UniformSampleCone(const Point2f& u, float cosThetaMax)
+	{
+		float cosTheta = ((float)1 - u[0]) + u[0] * cosThetaMax;
+		float sinTheta = std::sqrt((float)1 - cosTheta * cosTheta);
+		float phi = u[1] * 2 * Pi;
+		return { std::cos(phi) * sinTheta, std::sin(phi) * sinTheta,cosTheta };
+	}
 }

@@ -3,18 +3,6 @@
 
 namespace pbrt
 {
-	Matrix4x4::Matrix4x4(
-		float t00, float t01, float t02, float t03,
-		float t10, float t11, float t12, float t13,
-		float t20, float t21, float t22, float t23,
-		float t30, float t31, float t32, float t33) :
-		m{
-			{t00, t01, t02, t03},
-			{t10, t11, t12, t13},
-			{t20, t21, t22, t23},
-			{t30, t31, t32, t33} }
-	{}
-
 	Matrix4x4::Matrix4x4(float mat[4][4]) : m()
 	{
 		memcpy(m, mat, 16 * sizeof(float));
@@ -86,6 +74,18 @@ namespace pbrt
 			m.m[1][1], m.m[2][1], m.m[3][1], m.m[0][2], m.m[1][2],
 			m.m[2][2], m.m[3][2], m.m[0][3], m.m[1][3], m.m[2][3],
 			m.m[3][3]);
+	}
+
+	bool SolveLinearSystem2x2(const float A[2][2], const float B[2], float* x0, float* x1)
+	{
+		float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+		if (std::abs(det) < 1e-10f)
+			return false;
+		*x0 = (A[1][1] * B[0] - A[0][1] * B[1]) / det;
+		*x1 = (A[0][0] * B[1] - A[1][0] * B[0]) / det;
+		if (std::isnan(*x0) || std::isnan(*x1))
+			return false;
+		return true;
 	}
 
 	Transform::Transform(const float mat[4][4])

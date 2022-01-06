@@ -57,6 +57,67 @@ namespace pbrt
         return Lerp(t, vals[offset], vals[offset + 1]);
     }
 
+    SampledSpectrum::SampledSpectrum(float v): CoefficientSpectrum(v)
+    {}
+
+    SampledSpectrum::SampledSpectrum(const CoefficientSpectrum<nSpectralSamples>& v): CoefficientSpectrum<nSpectralSamples>(v)
+    {}
+
+    SampledSpectrum SampledSpectrum::FromSampled(const float* lambda, const float* v, int n)
+    {
+	    if(!SpectrumSamplesSorted(lambda, v, n))
+	    {
+		    std::vector<float> slambda(&lambda[0], &lambda[n]);
+		    std::vector<float> sv(&v[0], &v[n]);
+		    SortSpectrumSamples(&slambda[0], &sv[0], n);
+		    return FromSampled(&slambda[0], &sv[0], n);
+	    }
+	    SampledSpectrum r;
+	    for(int i = 0; i < nSpectralSamples; ++i)
+	    {
+		    float lambda0 = Lerp(float(i) / float(nSpectralSamples),
+		                         sampledLambdaStart, sampledLambdaEnd);
+		    float lambda1 = Lerp(float(i + 1) / float(nSpectralSamples),
+		                         sampledLambdaStart, sampledLambdaEnd);
+		    r.c[i] = AverageSpectrumSamples(lambda, v, n, lambda0, lambda1);
+	    }
+	    return r;
+    }
+
+    void SampledSpectrum::ToXYZ(float xyz[3]) const
+    {
+	    xyz[0] = xyz[1] = xyz[2] = 0.f;
+	    for (int i = 0; i < nSpectralSamples; ++i)
+	    {
+		    xyz[0] += X.c[i] * c[i];
+		    xyz[1] += Y.c[i] * c[i];
+		    xyz[2] += Z.c[i] * c[i];
+	    }
+	    float scale = float(sampledLambdaEnd - sampledLambdaStart) /
+		    float(CIE_Y_integral * nSpectralSamples);
+	    xyz[0] *= scale;
+	    xyz[1] *= scale;
+	    xyz[2] *= scale;
+    }
+
+    float SampledSpectrum::y() const
+    {
+	    float yy = 0.f;
+	    for (int i = 0; i < nSpectralSamples; ++i)
+	    {
+		    yy += Y.c[i] * c[i];
+	    }
+	    return yy * float(sampledLambdaEnd - sampledLambdaStart) /
+		    float(CIE_Y_integral * nSpectralSamples);
+    }
+
+    void SampledSpectrum::ToRGB(float rgb[3]) const
+    {
+	    float xyz[3];
+	    ToXYZ(xyz);
+	    XYZToRGB(rgb, xyz);
+    }
+
     void SampledSpectrum::Init()
     {
 	    for(int i = 0; i < nSpectralSamples; ++i)
@@ -1099,6 +1160,79 @@ namespace pbrt
 
         return r.Clamp();
     }
+
+    RGBSpectrum::RGBSpectrum(float v): CoefficientSpectrum<3>(v)
+    {}
+
+    RGBSpectrum::RGBSpectrum(const CoefficientSpectrum<3>& v): CoefficientSpectrum<3>(v)
+    {}
+
+    RGBSpectrum::RGBSpectrum(const RGBSpectrum& s, SpectrumType type)
+    {
+	    *this = s;
+    }
+
+    RGBSpectrum RGBSpectrum::FromRGB(const float rgb[3], SpectrumType type)
+    {
+	    RGBSpectrum s;
+	    s.c[0] = rgb[0];
+	    s.c[1] = rgb[1];
+	    s.c[2] = rgb[2];
+	    return s;
+    }
+
+    void RGBSpectrum::ToRGB(float* rgb) const
+    {
+	    rgb[0] = c[0];
+	    rgb[1] = c[1];
+	    rgb[2] = c[2];
+    }
+
+    const RGBSpectrum& RGBSpectrum::ToRGBSpectrum() const
+    { return *this; }
+
+    RGBSpectrum RGBSpectrum::FromXYZ(const float xyz[3], SpectrumType type)
+    {
+	    float rgb[3];
+	    XYZToRGB(xyz, rgb);
+	    return FromRGB(rgb, type);
+    }
+
+    void RGBSpectrum::ToXYZ(float* xyz) const
+    {
+	    return RGBToXYZ(c, xyz);
+    }
+
+    float RGBSpectrum::y() const
+    {
+	    const float YWeight[3] = { 0.212671f, 0.715160f, 0.072169f };
+	    return YWeight[0] * c[0] + YWeight[1] * c[1] + YWeight[2] * c[2];
+    }
+
+    void Blackbody(const float* lambda, int n, float T, float* Le)
+    {
+	    const float c = 299792458;
+	    const float h = 6.62606957e-34;
+	    const float kb = 1.3806488e-23;
+	    for(int i = 0; i < n; ++i)
+	    {
+		    float l = lambda[i] * 1e-9;
+		    float lambda5 = (l * l) * (l * l) * l;
+		    Le[i] = (2 * h * c * c) /
+			    (lambda5 * (std::exp((h * c) / (l * kb * T)) - 1));
+	    }
+    }
+
+    void BlackbodyNormalized(const float* lambda, int n, float T, float* Le)
+    {
+	    Blackbody(lambda, n, T, Le);
+	    float lambdaMax = 2.8977721e-3 / T * 1e9;
+	    float maxL;
+	    Blackbody(&lambdaMax, 1, T, &maxL);
+	    for (int i = 0; i < n; ++i)
+		    Le[i] /= maxL;
+    }
+
     RGBSpectrum RGBSpectrum::FromSampled(const float* lambda, const float* v, int n)
     {
         if (!SpectrumSamplesSorted(lambda, v, n))

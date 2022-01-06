@@ -169,6 +169,7 @@ namespace pbrt
             isect->n = Faceforward(isect->n, isect->shading.n);
         else if (reverseOrientation ^ transformSwapsHandedness)
             isect->n = isect->shading.n = -isect->n;
+        return true;
     }
 
     Interaction Triangle::Sample(const Point2f& u) const

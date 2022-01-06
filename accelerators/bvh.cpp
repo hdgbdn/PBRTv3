@@ -503,12 +503,12 @@ namespace pbrt
 					atomicTotal += nodesCreated;
 				}, treeletsToBuild.size());
 			*totalNodes = atomicTotal;
-			std::vector<BVHBuildNode*> finishedTreelets;
-			for (LBVHTreelet& treelet : treeletsToBuild)
-				finishedTreelets.push_back(treelet.buildNodes);
-			return buildUpperSAH(arena, finishedTreelets, 0,
-				finishedTreelets.size(), totalNodes);
 		}
+		std::vector<BVHBuildNode*> finishedTreelets;
+		for (LBVHTreelet& treelet : treeletsToBuild)
+			finishedTreelets.push_back(treelet.buildNodes);
+		return buildUpperSAH(arena, finishedTreelets, 0,
+			finishedTreelets.size(), totalNodes);
 	}
 
 	int BVHAccel::flattenBVHTree(BVHBuildNode* node, int* offset)

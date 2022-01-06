@@ -79,7 +79,7 @@ namespace pbrt
         virtual T Evaluate(const SurfaceInteraction&) const = 0;
     };
 
-    float Lanczos(float x, float tau);
+    float Lanczos(float x, float tau = 2);
 }
 
 #endif

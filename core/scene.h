@@ -22,7 +22,7 @@ namespace pbrt
 		std::vector<std::shared_ptr<Light>> lights;
 		const Bounds3f Worldbound() const { return worldBound; }
 		bool Intersect(const Ray& ray, SurfaceInteraction* isect) const;
-		bool Scene::IntersectTr(Ray ray, Sampler& sampler,
+		bool IntersectTr(Ray ray, Sampler& sampler,
 			SurfaceInteraction* isect, Spectrum* Tr) const;
 		bool IntersectP(const Ray& ray) const {
 			return aggregate->IntersectP(ray);

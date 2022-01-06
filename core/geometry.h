@@ -101,7 +101,7 @@ namespace pbrt
 
 		bool HasNaNs() const
 		{
-			return std::isnan(x) || std::isnan(y);
+			return std::isnan((float)x) || std::isnan((float)y);
 		}
 
 		T x, y;
@@ -212,16 +212,16 @@ namespace pbrt
 
 		bool HasNaNs() const
 		{
-			return std::isnan(x) || std::isnan(y) || std::isnan(z);
+			return std::isnan((float)x) || std::isnan((float)y) || std::isnan((float)z);
 		}
 
 		T x, y, z;
 	};
 
 	template <typename T, typename U>
-	Vector3<T>& operator*(U s, const Vector3<T>& v)
+	Vector3<T> operator*(U s, const Vector3<T>& v)
 	{
-		return s * v;
+		return v * s;
 	}
 
 	template <typename T>
@@ -412,7 +412,7 @@ namespace pbrt
 
 		bool HasNaNs() const
 		{
-			return std::isnan(x) || std::isnan(y);
+			return std::isnan((float)x) || std::isnan((float)y);
 		}
 
 		Point2<T> operator+(const Vector2<T>& v) const
@@ -479,13 +479,13 @@ namespace pbrt
 	template <typename T>
 	Point2<T> Floor(const Point2<T>& p)
 	{
-		return (std::floor(p.x), std::floor(p.y));
+		return { std::floor(p.x), std::floor(p.y) };
 	}
 
 	template <typename T>
 	Point2<T> Ceil(const Point2<T>& p)
 	{
-		return (std::ceil(p.x), std::ceil(p.y));
+		return { std::ceil(p.x), std::ceil(p.y) };
 	}
 
 	template <typename T>
@@ -618,7 +618,7 @@ namespace pbrt
 
 		bool HasNaNs() const
 		{
-			return std::isnan(x) || std::isnan(y) || std::isnan(z);
+			return std::isnan((float)x) || std::isnan((float)y) || std::isnan((float)z);
 		}
 
 		T x, y, z;
@@ -671,7 +671,7 @@ namespace pbrt
 	template <typename T>
 	Point3<T> Floor(const Point3<T>& p)
 	{
-		return (std::floor(p.x), std::floor(p.y), std::floor(p.z));
+		return { std::floor(p.x), std::floor(p.y), std::floor(p.z) };
 	}
 
 	template <typename T>
@@ -683,7 +683,7 @@ namespace pbrt
 	template <typename T>
 	Point3<T> Abs(const Point3<T>& p)
 	{
-		return (std::abs(p.x), std::abs(p.y), std::abs(p.z));
+		return { std::abs(p.x), std::abs(p.y), std::abs(p.z) };
 	}
 
 	template <typename T>
@@ -826,7 +826,7 @@ namespace pbrt
 
 		bool HasNaNs() const
 		{
-			return std::isnan(x) || std::isnan(y) || std::isnan(z);
+			return std::isnan((float)x) || std::isnan((float)y) || std::isnan((float)z);
 		}
 
 		T x, y, z;

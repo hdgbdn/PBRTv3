@@ -1,5 +1,6 @@
 #include "mipmap.h"
 #include "spectrum.h"
+#include "texture.h"
 
 namespace pbrt
 {
@@ -143,13 +144,13 @@ namespace pbrt
 			{
 				float pos = wt[i].firstTexel + j + .5f;
 				// same value in same relative position, maybe use map cache it?
-				wt[i].weight[j] = Lanczos((pos - center) / filterwidth);
+				wt[i].weight[j] = Lanczos((pos - center) / filterWidth);
 			}
+			float invSumWts = 1 / (wt[i].weight[0] + wt[i].weight[1] +
+				wt[i].weight[2] + wt[i].weight[3]);
+			for (int j = 0; j < 4; ++j)
+				wt[i].weight[j] *= invSumWts;
 		}
-		float invSumWts = 1 / (wt[i].weight[0] + wt[i].weight[1] +
-			wt[i].weight[2] + wt[i].weight[3]);
-		for (int j = 0; j < 4; ++j)
-			wt[i].weight[j] *= invSumWts;
 		return wt;
 	}
 }

@@ -30,6 +30,7 @@ namespace pbrt
 			Floor(Point2f(croppedPixelBounds.pMin) + Vector2f(.5f, .5f) - filter->radius),
 			Ceil(Point2f(croppedPixelBounds.pMax) - Vector2f(.5f, .5f) + filter->radius)
 		);
+		return static_cast<Bounds2<int>>(floatBounds);
 	}
 
 	Bounds2f Film::GetPhysicalExtent() const

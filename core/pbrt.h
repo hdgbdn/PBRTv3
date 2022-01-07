@@ -19,14 +19,24 @@ namespace pbrt
 	static PBRT_CONSTEXPR float Maxfloat = std::numeric_limits<float>::max();
 	static PBRT_CONSTEXPR float Infinity = std::numeric_limits<float>::infinity();
 #endif
+
 #ifndef PBRT_L1_CACHE_LINE_SIZE
 #define PBRT_L1_CACHE_LINE_SIZE 64
 #endif
-#define ALLOCA(TYPE, COUNT) (TYPE *) alloca((COUNT) * sizeof(TYPE))
-	static constexpr float MachineEpsilon =
-		std::numeric_limits<float>::epsilon() * 0.5;
 
-	struct Options {};
+#define ALLOCA(TYPE, COUNT) (TYPE *) alloca((COUNT) * sizeof(TYPE))
+
+	static constexpr float MachineEpsilon = std::numeric_limits<float>::epsilon() * 0.5;
+
+	struct Options
+	{
+		int nThreads = 0;
+		bool quickRender = false;
+		bool quiet = false, verbose = false;
+		std::string imageFile;
+	};
+
+	extern Options PbrtOptions;
 
 	// Forward
 	class Transform;
@@ -76,8 +86,8 @@ namespace pbrt
 	class Point3;
 	template <typename T>
 	class Point2;
-    template <typename T>
-    class Normal2;
+	template <typename T>
+	class Normal2;
 	template <typename T>
 	class Normal3;
 	class Ray;
@@ -129,19 +139,22 @@ namespace pbrt
 
 	inline float Degrees(float rad) { return (180 / Pi) * rad; }
 
-	inline float Log2(float x) {
+	inline float Log2(float x)
+	{
 		const float invLog2 = 1.442695040888963387004650940071;
 		return std::log(x) * invLog2;
 	}
 
-	inline int Log2Int(uint32_t v) {
+	inline int Log2Int(uint32_t v)
+	{
 		unsigned long lz = 0;
 		if (_BitScanReverse(&lz, v)) return lz;
 		return 0;
 	}
 
 	template <typename T, typename U, typename V>
-	inline T Clamp(T val, U low, V high) {
+	inline T Clamp(T val, U low, V high)
+	{
 		if (val < low)
 			return low;
 		else if (val > high)
@@ -149,14 +162,19 @@ namespace pbrt
 		else
 			return val;
 	}
+
 	inline bool Quadratic(float a, float b, float c, float* t0, float* t1);
 	inline float Lerp(float t, float v1, float v2) { return (1 - t) * v1 + t * v2; }
+
 	template <typename Predicate>
-	int FindInterval(int size, const Predicate& pred) {
+	int FindInterval(int size, const Predicate& pred)
+	{
 		int first = 0, len = size;
-		while (len > 0) {
+		while (len > 0)
+		{
 			int half = len >> 1, middle = first + half;
-			if (pred(middle)) {
+			if (pred(middle))
+			{
 				first = middle + 1;
 				len -= half + 1;
 			}
@@ -166,31 +184,36 @@ namespace pbrt
 		return Clamp(first - 1, 0, size - 2);
 	}
 
-	inline uint32_t floatToBits(float f) {
+	inline uint32_t floatToBits(float f)
+	{
 		uint32_t ui;
 		memcpy(&ui, &f, sizeof(float));
 		return ui;
 	}
 
-	inline float BitsToFloat(uint32_t ui) {
+	inline float BitsToFloat(uint32_t ui)
+	{
 		float f;
 		memcpy(&f, &ui, sizeof(uint32_t));
 		return f;
 	}
 
-	inline uint64_t FloatToBits(double f) {
+	inline uint64_t FloatToBits(double f)
+	{
 		uint64_t ui;
 		memcpy(&ui, &f, sizeof(double));
 		return ui;
 	}
 
-	inline double BitsToFloat(uint64_t ui) {
+	inline double BitsToFloat(uint64_t ui)
+	{
 		double f;
 		memcpy(&f, &ui, sizeof(uint64_t));
 		return f;
 	}
 
-	inline float NextFloatUp(float v) {
+	inline float NextFloatUp(float v)
+	{
 		// Handle infinity and negative zero for _NextFloatUp()_
 		if (std::isinf(v) && v > 0.) return v;
 		if (v == -0.f) v = 0.f;
@@ -204,7 +227,8 @@ namespace pbrt
 		return BitsToFloat(ui);
 	}
 
-	inline float NextFloatDown(float v) {
+	inline float NextFloatDown(float v)
+	{
 		// Handle infinity and positive zero for _NextFloatDown()_
 		if (std::isinf(v) && v < 0.) return v;
 		if (v == 0.f) v = -0.f;
@@ -216,7 +240,8 @@ namespace pbrt
 		return BitsToFloat(ui);
 	}
 
-	inline double NextFloatUp(double v, int delta = 1) {
+	inline double NextFloatUp(double v, int delta = 1)
+	{
 		if (std::isinf(v) && v > 0.) return v;
 		if (v == -0.f) v = 0.f;
 		uint64_t ui = FloatToBits(v);
@@ -227,7 +252,8 @@ namespace pbrt
 		return BitsToFloat(ui);
 	}
 
-	inline double NextFloatDown(double v, int delta = 1) {
+	inline double NextFloatDown(double v, int delta = 1)
+	{
 		if (std::isinf(v) && v < 0.) return v;
 		if (v == 0.f) v = -0.f;
 		uint64_t ui = FloatToBits(v);
@@ -238,39 +264,49 @@ namespace pbrt
 		return BitsToFloat(ui);
 	}
 
-	template <typename T> inline bool IsPowerOf2(T v) {
+	template <typename T>
+	inline bool IsPowerOf2(T v)
+	{
 		return v && !(v & (v - 1));
 	}
 
-	inline int32_t RoundUpPow2(int32_t v) {
+	inline int32_t RoundUpPow2(int32_t v)
+	{
 		v--;
-		v |= v >> 1;    v |= v >> 2;
-		v |= v >> 4;    v |= v >> 8;
+		v |= v >> 1;
+		v |= v >> 2;
+		v |= v >> 4;
+		v |= v >> 8;
 		v |= v >> 16;
 		return v + 1;
 	}
 
-	inline constexpr float gamma(int n) {
+	inline constexpr float gamma(int n)
+	{
 		return (n * MachineEpsilon) / (1 - n * MachineEpsilon);
 	}
 
-	inline float GammaCorrect(float value) {
+	inline float GammaCorrect(float value)
+	{
 		if (value <= 0.0031308f)
 			return 12.92f * value;
 		return 1.055f * std::pow(value, (float)(1.f / 2.4f)) - 0.055f;
 	}
 
-	inline float InverseGammaCorrect(float value) {
+	inline float InverseGammaCorrect(float value)
+	{
 		if (value <= 0.04045f)
 			return value * 1.f / 12.92f;
 		return std::pow((value + 0.055f) * 1.f / 1.055f, (float)2.4f);
 	}
 
-	inline float ErfInv(float x) {
+	inline float ErfInv(float x)
+	{
 		float w, p;
 		x = Clamp(x, -.99999f, .99999f);
 		w = -std::log((1 - x) * (1 + x));
-		if (w < 5) {
+		if (w < 5)
+		{
 			w = w - 2.5f;
 			p = 2.81022636e-08f;
 			p = 3.43273939e-07f + p * w;
@@ -282,7 +318,8 @@ namespace pbrt
 			p = 0.246640727f + p * w;
 			p = 1.50140941f + p * w;
 		}
-		else {
+		else
+		{
 			w = std::sqrt(w) - 3;
 			p = -0.000200214257f;
 			p = 0.000100950558f + p * w;
@@ -297,7 +334,8 @@ namespace pbrt
 		return p * x;
 	}
 
-	inline float Erf(float x) {
+	inline float Erf(float x)
+	{
 		// constants
 		float a1 = 0.254829592f;
 		float a2 = -0.284496736f;

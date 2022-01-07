@@ -111,6 +111,9 @@ namespace pbrt
 	template <typename T, int logBlockSize = 2>
 	class BlockedArray;
 
+	// API
+	class ParamSet;
+
 	template <typename T>
 	inline T Mod(T a, T b)
 	{

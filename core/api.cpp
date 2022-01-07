@@ -5,6 +5,8 @@
 
 #include <map>
 
+#include "paramset.h"
+
 namespace pbrt
 {
 	// API Global Variables
@@ -34,6 +36,22 @@ namespace pbrt
         Transform t[MaxTransforms];
     };
 
+    struct RenderOptions
+    {
+        float transformStartTime = 0, transformEndTime = 1;
+        std::string FilterName = "box";
+        ParamSet FilterParams;
+        std::string FilmName = "image";
+        ParamSet FilmParams;
+        std::string SamplerName = "halton";
+        ParamSet SamplerParams;
+        std::string AcceleratorName = "bvh";
+        ParamSet AcceleratorParams;
+        std::string IntegratorName = "path";
+        ParamSet IntegratorParams;
+        std::string CameraName = "perspective";
+        ParamSet CameraParams;
+    };
 
 	// API Static Data
 	enum class APIState { Uninitialized, OptionsBlock, WorldBlock };
@@ -41,6 +59,7 @@ namespace pbrt
     static TransformSet curTransform;
     static int activeTransformBits = ALLTransformsBits;
     static std::map<std::string, TransformSet> namedCoordinateSystems;
+    static std::unique_ptr<RenderOptions> renderOptions;
 
 	// API Macros
 #define VERIFY_INITIALIZED(func)                           \
@@ -154,6 +173,63 @@ do { if (curTransform.IsAnimated())                                   \
                 name.c_str());
     }
 
+    void pbrtActiveTransformAll()
+    {
+        activeTransformBits = ALLTransformsBits;
+    }
+
+    void pbrtActiveTransformEndTime()
+    {
+        activeTransformBits = EndTransformBits;
+    }
+
+    void pbrtActiveTransformStartTime()
+    {
+        activeTransformBits = StartTransformBits;
+    }
+
+    void pbrtTransformTimes(float start, float end)
+    {
+        VERIFY_OPTIONS("TransformTimes");
+        renderOptions->transformStartTime = start;
+        renderOptions->transformEndTime = end;
+    }
+
+    void pbrtPixelFilter(const std::string& name, const ParamSet& params)
+    {
+        VERIFY_OPTIONS("PiexlFilter");
+        renderOptions->FilterName = name;
+        renderOptions->FilterParams = params;
+    }
+
+    void pbrtFilm(const std::string& type, const ParamSet& params)
+    {
+        VERIFY_OPTIONS("PiexlFilter");
+        renderOptions->FilmName = type;
+        renderOptions->FilmParams = params;
+    }
+
+    void pbrtSampler(const std::string& name, const ParamSet& params)
+    {
+        VERIFY_OPTIONS("Sampler");
+        renderOptions->SamplerName = name;
+        renderOptions->SamplerParams = params;
+    }
+
+    void pbrtAccelerator(const std::string& name, const ParamSet& params)
+    {
+        VERIFY_OPTIONS("Accelerator");
+        renderOptions->AcceleratorName = name;
+        renderOptions->AcceleratorParams = params;
+    }
+
+    void pbrtIntegrator(const std::string& name, const ParamSet& params)
+    {
+        VERIFY_OPTIONS("Accelerator");
+        renderOptions->IntegratorName = name;
+        renderOptions->IntegratorParams = params;
+    }
+
 	void pbrtInit(const Options& opt)
 	{
 		PbrtOptions = opt;
@@ -161,6 +237,7 @@ do { if (curTransform.IsAnimated())                                   \
 			Error("pbrtInit() has already been called.");
 		currentApiState = APIState::OptionsBlock;
 
+        renderOptions.reset(new RenderOptions);
 
 		SampledSpectrum::Init();
 	}
@@ -171,6 +248,7 @@ do { if (curTransform.IsAnimated())                                   \
 			Error("pbrtCleanup() called without pbrtInit()");
 		else if (currentApiState == APIState::WorldBlock)
 			Error("pbrtCleanup() called while inside world block");
+        renderOptions.reset(nullptr);
 	}
 
     TransformSet Inverse(const TransformSet& ts)

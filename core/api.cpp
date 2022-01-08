@@ -295,6 +295,28 @@ do { if (curTransform.IsAnimated())                                   \
         pushedActiveTransformBits.pop_back();
     }
 
+    void pbrtTransformBegin()
+    {
+        VERIFY_WORLD("TransformBegin");
+        pushedTransforms.push_back(curTransform);
+        pushedActiveTransformBits.push_back(activeTransformBits);
+    }
+
+    void pbrtTransformEnd()
+    {
+        VERIFY_WORLD("TransformEnd");
+        if (pushedTransforms.empty()) {
+            Error(
+                "Unmatched pbrtTransformEnd() encountered. "
+                "Ignoring it.");
+            return;
+        }
+        curTransform = pushedTransforms.back();
+        pushedTransforms.pop_back();
+        activeTransformBits = pushedActiveTransformBits.back();
+        pushedActiveTransformBits.pop_back();
+    }
+
 	void pbrtCleanUp()
 	{
 		if (currentApiState == APIState::Uninitialized)

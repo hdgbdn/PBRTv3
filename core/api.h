@@ -32,6 +32,8 @@ namespace pbrt
 	void pbrtWorldEnd();
 	void pbrtAttributeBegin();
 	void pbrtAttributeEnd();
+	void pbrtTransformBegin();
+	void pbrtTransformEnd();
 	void pbrtCleanUp();
 	void pbrtParseFile(std::string filename);
 }

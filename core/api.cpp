@@ -51,6 +51,12 @@ namespace pbrt
         ParamSet IntegratorParams;
         std::string CameraName = "perspective";
         ParamSet CameraParams;
+        std::map<std::string, std::shared_ptr<Medium>> namedMedia;
+    };
+
+    struct GraphicsState
+    {
+        std::string currentInsideMedium, currentOutsideMedium;
     };
 
 	// API Static Data
@@ -60,6 +66,10 @@ namespace pbrt
     static int activeTransformBits = ALLTransformsBits;
     static std::map<std::string, TransformSet> namedCoordinateSystems;
     static std::unique_ptr<RenderOptions> renderOptions;
+    static GraphicsState graphicsState;
+    static std::vector<GraphicsState> pushedGraphicsStates;
+    static std::vector<TransformSet> pushedTransforms;
+    static std::vector<uint32_t> pushedActiveTransformBits;
 
 	// API Macros
 #define VERIFY_INITIALIZED(func)                           \
@@ -230,7 +240,14 @@ do { if (curTransform.IsAnimated())                                   \
         renderOptions->IntegratorParams = params;
     }
 
-	void pbrtInit(const Options& opt)
+    void pbrtMediumInterface(const std::string& insideName, const std::string& outsideName)
+    {
+        VERIFY_INITIALIZED("MediumInterface");
+        graphicsState.currentInsideMedium = insideName;
+        graphicsState.currentOutsideMedium = outsideName;
+    }
+
+    void pbrtInit(const Options& opt)
 	{
 		PbrtOptions = opt;
 		if (currentApiState != APIState::Uninitialized) 
@@ -238,9 +255,45 @@ do { if (curTransform.IsAnimated())                                   \
 		currentApiState = APIState::OptionsBlock;
 
         renderOptions.reset(new RenderOptions);
+        graphicsState = GraphicsState();
 
 		SampledSpectrum::Init();
 	}
+
+    void pbrtWorldBegin()
+    {
+        VERIFY_OPTIONS("WorldBegin");
+        currentApiState = APIState::WorldBlock;
+        for (int i = 0; i < MaxTransforms; ++i)
+            curTransform[i] = Transform();
+        activeTransformBits = ALLTransformsBits;
+        namedCoordinateSystems["world"] = curTransform;
+    }
+
+    void pbrtAttributeBegin()
+    {
+        VERIFY_WORLD("AttributeBegin");
+        pushedGraphicsStates.push_back(graphicsState);
+        pushedTransforms.push_back(curTransform);
+        pushedActiveTransformBits.push_back(activeTransformBits);
+    }
+
+    void pbrtAttributeEnd()
+    {
+        VERIFY_WORLD("AttrbuteEnd");
+        if(pushedGraphicsStates.empty())
+        {
+            Error("Unmatched pbrtAttributeEnd() encountered. "
+                "Ignoring it.");
+            return;
+        }
+        graphicsState = pushedGraphicsStates.back();
+        pushedGraphicsStates.pop_back();
+        curTransform = pushedTransforms.back();
+        pushedTransforms.pop_back();
+        activeTransformBits = pushedActiveTransformBits.back();
+        pushedActiveTransformBits.pop_back();
+    }
 
 	void pbrtCleanUp()
 	{

@@ -25,7 +25,13 @@ namespace pbrt
 	void pbrtSampler(const std::string& name, const ParamSet& params);
 	void pbrtAccelerator(const std::string& name, const ParamSet& params);
 	void pbrtIntegrator(const std::string& name, const ParamSet& params);
+	void pbrtMakenamedMedium(const std::string& name, const ParamSet& params);
+	void pbrtMediumInterface(const std::string& insideName, const std::string& outsideName);
 	void pbrtInit(const Options& opt);
+	void pbrtWorldBegin();
+	void pbrtWorldEnd();
+	void pbrtAttributeBegin();
+	void pbrtAttributeEnd();
 	void pbrtCleanUp();
 	void pbrtParseFile(std::string filename);
 }

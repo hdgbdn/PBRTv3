@@ -5,7 +5,10 @@
 
 #include <map>
 
+#include "medium.h"
+#include "memory.h"
 #include "paramset.h"
+#include "primitive.h"
 
 namespace pbrt
 {
@@ -52,11 +55,57 @@ namespace pbrt
         std::string CameraName = "perspective";
         ParamSet CameraParams;
         std::map<std::string, std::shared_ptr<Medium>> namedMedia;
+        std::vector<std::shared_ptr<Light>> lights;
+
+        std::map<std::string, std::vector<std::shared_ptr<Primitive>>> instances;
+        std::vector<std::shared_ptr<Primitive>>* currentInstance = nullptr;
+        std::vector<std::shared_ptr<Primitive>> primitives;
     };
 
     struct GraphicsState
     {
+        std::map<std::string, std::shared_ptr<Texture<float>>> floatTextures;
+        std::map<std::string,
+            std::shared_ptr<Texture<Spectrum>>> spectrumTextures;
+        ParamSet materialParams;
+        std::string material = "matte";
+        std::map<std::string, std::shared_ptr<Material>> namedMaterials;
+        std::string currentNamedMaterial;
         std::string currentInsideMedium, currentOutsideMedium;
+        ParamSet areaLightParams;
+        std::string areaLight;
+
+        bool reverseOrientation;
+
+        MediumInterface CreateMediumInterface();
+        std::shared_ptr<Material> CreateMaterial(const ParamSet& params);
+    };
+
+    class TransformCache
+    {
+    public:
+        TransformCache() = default;
+		void Lookup(const Transform& trans, Transform** origin, Transform** inverse)
+		{
+			if(cache.contains(trans))
+			{
+                *origin = cache[trans].first;
+                *inverse = cache[trans].second;
+			}
+            else
+            {
+                Transform* t = arena.Alloc<Transform>();
+                Transform* tr = arena.Alloc<Transform>();
+                *t = trans;
+                *tr = Inverse(trans);
+                cache[trans] = std::make_pair(t, tr);
+                *origin = t;
+                *inverse = tr;
+            }
+		}
+    private:
+        std::map<Transform, std::pair<Transform*, Transform*>> cache;
+        MemoryArena arena;
     };
 
 	// API Static Data
@@ -70,6 +119,7 @@ namespace pbrt
     static std::vector<GraphicsState> pushedGraphicsStates;
     static std::vector<TransformSet> pushedTransforms;
     static std::vector<uint32_t> pushedActiveTransformBits;
+    static TransformCache transformCache;
 
 	// API Macros
 #define VERIFY_INITIALIZED(func)                           \
@@ -110,6 +160,40 @@ do { if (curTransform.IsAnimated())                                   \
 #define FOR_ACTIVE_TRANSFORMS(expr)                   \
     for (int i = 0; i < MaxTransforms; ++i)           \
         if (activeTransformBits & (1 << i)) { expr }
+
+    // Object Creation Function Definitions
+    std::shared_ptr<Texture<float>> MakeFloatTexture(const std::string& name,
+        const Transform& tex2world,
+        const TextureParams& tp)
+    {
+        return {};
+    }
+
+    std::shared_ptr<Texture<Spectrum>> MakeSpectrumTexture(const std::string& name,
+        const Transform& tex2world,
+        const TextureParams& tp)
+    {
+        return {};
+    }
+
+    std::shared_ptr<Light> MakeLight(const std::string& name, const ParamSet& params, 
+        const Transform& light2World, const MediumInterface& mediumInterface)
+    {
+        return {};
+    }
+
+    std::shared_ptr<AreaLight> MakeAreaLight(const std::string& name, const Transform& light2World,
+        const MediumInterface& mi, const ParamSet& params, std::shared_ptr<Shape> shape)
+    {
+        return {};
+    }
+
+    std::vector<std::shared_ptr<Shape>> MakeShapes(const std::string& name, const Transform* ObjectToWorld,
+                                                   const Transform* WorldToObject, bool reverseOrientation,
+                                                   const ParamSet& paramSet)
+    {
+	    return {};
+    }
 
     void pbrtIdentity()
     {
@@ -317,7 +401,96 @@ do { if (curTransform.IsAnimated())                                   \
         pushedActiveTransformBits.pop_back();
     }
 
-	void pbrtCleanUp()
+    void pbrtTexture(const std::string& name, const std::string& type, const std::string& texName, const ParamSet& params)
+    {
+        VERIFY_WORLD("Texture");
+        TextureParams tp(params, params, graphicsState.floatTextures, graphicsState.spectrumTextures);
+        if (type == "float")
+        {
+            if(graphicsState.floatTextures.find(name) != graphicsState.floatTextures.end())
+                Info("Texture \"%s\" being redefined", name.c_str());
+            WARN_IF_ANIMATED_TRANSFORM("Texture");
+            std::shared_ptr<Texture<float>> ft = MakeFloatTexture(name, curTransform[0], tp);
+            if (ft) graphicsState.floatTextures[name] = ft;
+        }
+        else if (type == "color" || type == "spectrum")
+        {
+            if (graphicsState.spectrumTextures.find(name) != graphicsState.spectrumTextures.end())
+                Info("Texture \"%s\" being redefined", name.c_str());
+            WARN_IF_ANIMATED_TRANSFORM("Texture");
+            std::shared_ptr<Texture<Spectrum>> st = MakeSpectrumTexture(texName,
+                curTransform[0], tp);
+            if (st) graphicsState.spectrumTextures[name] = st;
+        }
+        else
+            Error("Texture type \"%s\" unknown.", type.c_str());
+    }
+
+    void pbrtLightSource(const std::string& name, const ParamSet& params)
+    {
+        VERIFY_WORLD("LightSource");
+        WARN_IF_ANIMATED_TRANSFORM("LightSource");
+        MediumInterface mi = graphicsState.CreateMediumInterface();
+        std::shared_ptr<Light> lt = MakeLight(name, params, curTransform[0], mi);
+        if (!lt) Error("LightSource: light type \"%s\" unknown.", name.c_str());
+        else renderOptions->lights.push_back(lt);
+    }
+
+    void pbrtAreaLightSource(const std::string& name, const ParamSet& params)
+    {
+        VERIFY_WORLD("AREALIGHTSOURCE");
+        graphicsState.areaLight = name;
+        graphicsState.areaLightParams = params;
+    }
+
+    void pbrtShape(const std::string& name, const ParamSet& params)
+    {
+        VERIFY_WORLD("Shape");
+        std::vector<std::shared_ptr<Primitive>> prims;
+        std::vector<std::shared_ptr<AreaLight>> areaLights;
+        if (!curTransform.IsAnimated())
+        {
+            Transform* ObjToWorld, * WorldToObj;
+            std::vector<std::shared_ptr<Shape>> shapes =
+                MakeShapes(name, ObjToWorld, WorldToObj,
+                    graphicsState.reverseOrientation, params);
+            if (shapes.empty()) return;
+            transformCache.Lookup(curTransform[0], &ObjToWorld, &WorldToObj);
+            std::shared_ptr<Material> mtl = graphicsState.CreateMaterial(params);
+            params.ReportUnused();
+            MediumInterface mi = graphicsState.CreateMediumInterface();
+            for (auto s : shapes)
+            {
+                std::shared_ptr<AreaLight> area;
+                if(!graphicsState.areaLight.empty())
+                {
+                    area = MakeAreaLight(graphicsState.areaLight, curTransform[0], mi, 
+                        graphicsState.areaLightParams, s);
+                    areaLights.push_back(area);
+                }
+                prims.push_back(std::make_shared<GeometricPrimitive>(s, mtl, area, mi));
+            }
+        }
+        else
+        {
+	        // for animated shape
+        }
+        if(renderOptions->currentInstance != nullptr)
+        {
+	        if(!areaLights.empty()) Warning("Area lights not supported with object instancing");
+            renderOptions->currentInstance->insert(renderOptions->currentInstance->end(), prims.begin(), prims.end());
+        }
+        else
+        {
+            renderOptions->primitives.insert(renderOptions->primitives.end(),
+                prims.begin(), prims.end());
+            if (areaLights.size())
+                renderOptions->lights.insert(renderOptions->lights.end(),
+                    areaLights.begin(), areaLights.end());
+        }
+    }
+
+    void pbrtCleanUp()
 	{
 		if (currentApiState == APIState::Uninitialized)
 			Error("pbrtCleanup() called without pbrtInit()");

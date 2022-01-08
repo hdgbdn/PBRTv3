@@ -5,6 +5,7 @@
 
 namespace pbrt
 {
+	void Info(const char* format, ...);
 	void Warning(const char* format, ...);
 	void Error(const char* format, ...);
 }

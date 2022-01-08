@@ -4,6 +4,9 @@
 #include "pbrt.h"
 #include "geometry.h"
 
+#include <map>
+#include <memory>
+
 namespace pbrt
 {
 	template<typename T>
@@ -50,6 +53,7 @@ namespace pbrt
 		Normal3f FindOneNormal3f(const std::string& name, const Normal3f& d) const;
 		std::string FindOneString(const std::string& name, const std::string& d) const;
 		Spectrum FindOneSpectrum(const std::string& name, const Spectrum& d) const;
+		std::string FindTexture(const std::string&) const;
 
 		void ReportUnused() const;
 		void Clear();
@@ -65,6 +69,27 @@ namespace pbrt
 		std::vector<std::shared_ptr<ParamSetItem<Spectrum>>> spectra;
 		std::vector<std::shared_ptr<ParamSetItem<std::string>>> strings;
 		std::vector<std::shared_ptr<ParamSetItem<std::string>>> textures;
+	};
+
+	class TextureParams
+	{
+	public:
+		TextureParams(const ParamSet& geoParams,
+		              const ParamSet& materialParams,
+		              std::map<std::string, std::shared_ptr<Texture<float>>>& floatTextures,
+		              std::map<std::string, std::shared_ptr<Texture<Spectrum>>>& spectrumTextures)
+			:
+			geoParams(geoParams),
+			materialParams(materialParams),
+			floatTextures(floatTextures),
+			spectrumTextures(spectrumTextures)
+		{
+		}
+		std::shared_ptr<Texture<Spectrum>> GetSpectrumTexture(const std::string& n, const Spectrum& d) const;
+	private:
+		std::map<std::string, std::shared_ptr<Texture<float>>>& floatTextures;
+		std::map<std::string, std::shared_ptr<Texture<Spectrum>>>& spectrumTextures;
+		const ParamSet& geoParams, & materialParams;
 	};
 }
 

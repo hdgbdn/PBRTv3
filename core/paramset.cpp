@@ -1,4 +1,7 @@
 #include "paramset.h"
+#include "error.h"
+#include "spectrum.h"
+#include "constant.h"
 
 namespace pbrt
 {
@@ -42,5 +45,21 @@ namespace pbrt
 		spectra.clear();
 		strings.clear();
 		textures.clear();
+	}
+	std::shared_ptr<Texture<Spectrum>> TextureParams::GetSpectrumTexture(const std::string& n, const Spectrum& d) const
+	{
+		std::string name = geoParams.FindTexture(n);
+		if (name.empty()) name = materialParams.FindTexture(n);
+		if (!name.empty())
+		{
+			if (spectrumTextures.find(name) != spectrumTextures.end())
+				return spectrumTextures[name];
+			else
+				Error("Couldn't find spectrum texture named \"%s\" "
+					"for parameter \"%s\"", name.c_str(), n.c_str());
+		}
+		Spectrum val = materialParams.FindOneSpectrum(n, d);
+		val = geoParams.FindOneSpectrum(n, val);
+		return std::make_shared<ConstantTexture<Spectrum>>(val);
 	}
 }

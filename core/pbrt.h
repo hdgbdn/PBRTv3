@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <mutex>
 
+#include "error.h"
+
 namespace pbrt
 {
 #ifdef _MSC_VER
@@ -114,19 +116,6 @@ namespace pbrt
 	// API
 	class ParamSet;
 
-	template <typename T>
-	inline T Mod(T a, T b)
-	{
-		T result = a - (a / b) * b;
-		return (T)((result < 0) ? result + b : result);
-	}
-
-	template <>
-	inline float Mod(float a, float b)
-	{
-		return std::fmod(a, b);
-	}
-
 	// Global constants
 
 	static constexpr float ShadowEpsilon = 0.0001f;
@@ -138,9 +127,26 @@ namespace pbrt
 	static constexpr float PiOver4 = 0.78539816339744830961;
 	static constexpr float Sqrt2 = 1.41421356237309504880;
 
-	inline float Radians(float deg) { return (Pi / 180) * deg; }
+	// Global Inline Functions
 
-	inline float Degrees(float rad) { return (180 / Pi) * rad; }
+#ifdef NDEBUG
+#define Assert(expr) ((void)0)
+#else
+#define Assert(expr) \
+    ((expr) ? (void)0 : \
+        Severe("Assertion \"%s\" failed in %s, line %d", \
+               #expr, __FILE__, __LINE__))
+#endif // NDEBUG
+
+	inline float Radians(float deg)
+	{
+		return (Pi / 180) * deg;
+	}
+
+	inline float Degrees(float rad)
+	{
+		return (180 / Pi) * rad;
+	}
 
 	inline float Log2(float x)
 	{
@@ -164,6 +170,19 @@ namespace pbrt
 			return high;
 		else
 			return val;
+	}
+
+	template <typename T>
+	inline T Mod(T a, T b)
+	{
+		T result = a - (a / b) * b;
+		return (T)((result < 0) ? result + b : result);
+	}
+
+	template <>
+	inline float Mod(float a, float b)
+	{
+		return std::fmod(a, b);
 	}
 
 	inline bool Quadratic(float a, float b, float c, float* t0, float* t1);
@@ -282,6 +301,10 @@ namespace pbrt
 		v |= v >> 8;
 		v |= v >> 16;
 		return v + 1;
+	}
+
+	inline int CountTrailingZeros(uint32_t v) {
+		return __lzcnt(v);
 	}
 
 	inline constexpr float gamma(int n)

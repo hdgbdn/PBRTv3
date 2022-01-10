@@ -1,8 +1,6 @@
 #ifndef PBRT_CORE_ERROR_H
 #define PBRT_CORE_ERROR_H
 
-#include "pbrt.h"
-
 namespace pbrt
 {
 	void Info(const char* format, ...);

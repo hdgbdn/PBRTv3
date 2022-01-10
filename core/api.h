@@ -34,6 +34,9 @@ namespace pbrt
 	void pbrtAttributeEnd();
 	void pbrtTransformBegin();
 	void pbrtTransformEnd();
+	void pbrtObjectBegin(const std::string& name);
+	void pbrtObjectEnd();
+	void pbrtObjectInstance(const std::string& name);
 	void pbrtTexture(const std::string& name, const std::string& type,
 		const std::string& texName, const ParamSet& params);
 	void pbrtMaterial(const std::string& name, const ParamSet& params);

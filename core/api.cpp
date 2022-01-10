@@ -9,6 +9,9 @@
 #include "memory.h"
 #include "paramset.h"
 #include "primitive.h"
+#include "bvh.h"
+#include "integrator.h"
+#include "scene.h"
 
 namespace pbrt
 {
@@ -60,6 +63,9 @@ namespace pbrt
         std::map<std::string, std::vector<std::shared_ptr<Primitive>>> instances;
         std::vector<std::shared_ptr<Primitive>>* currentInstance = nullptr;
         std::vector<std::shared_ptr<Primitive>> primitives;
+
+        Scene* MakeScene();
+        Integrator* MakeIntegrator() const;
     };
 
     struct GraphicsState
@@ -87,7 +93,7 @@ namespace pbrt
         TransformCache() = default;
 		void Lookup(const Transform& trans, Transform** origin, Transform** inverse)
 		{
-			if(cache.contains(trans))
+			if (cache.contains(trans))
 			{
                 *origin = cache[trans].first;
                 *inverse = cache[trans].second;
@@ -193,6 +199,11 @@ do { if (curTransform.IsAnimated())                                   \
                                                    const ParamSet& paramSet)
     {
 	    return {};
+    }
+
+    std::shared_ptr<Primitive> MakeAccelerator(const std::string& name, std::vector<std::shared_ptr<Primitive>>, const ParamSet& paramSet)
+    {
+        return {};
     }
 
     void pbrtIdentity()
@@ -354,6 +365,25 @@ do { if (curTransform.IsAnimated())                                   \
         namedCoordinateSystems["world"] = curTransform;
     }
 
+    void pbrtWorldEnd()
+    {
+        VERIFY_WORLD("WorldEnd");
+        while(!pushedGraphicsStates.empty())
+        {
+	        Warning("Missing end to pbrtAttributeBegin()");
+            pushedGraphicsStates.pop_back();
+            pushedTransforms.pop_back();
+        }
+        while (pushedTransforms.size()) {
+            Warning("Missing end to pbrtTransformBegin()");
+            pushedTransforms.pop_back();
+        }
+        std::unique_ptr<Integrator> integrator(renderOptions->MakeIntegrator());
+        std::unique_ptr<Scene> scene(renderOptions->MakeScene());
+        if (scene && integrator) integrator->Render(*scene);
+        TerminateWorkerThreads();
+    }
+
     void pbrtAttributeBegin()
     {
         VERIFY_WORLD("AttributeBegin");
@@ -365,7 +395,7 @@ do { if (curTransform.IsAnimated())                                   \
     void pbrtAttributeEnd()
     {
         VERIFY_WORLD("AttrbuteEnd");
-        if(pushedGraphicsStates.empty())
+        if (pushedGraphicsStates.empty())
         {
             Error("Unmatched pbrtAttributeEnd() encountered. "
                 "Ignoring it.");
@@ -401,13 +431,57 @@ do { if (curTransform.IsAnimated())                                   \
         pushedActiveTransformBits.pop_back();
     }
 
+    void pbrtObjectBegin(const std::string& name)
+    {
+        pbrtAttributeBegin();
+        if (renderOptions->currentInstance) Error("ObjectBegin called inside of instance definition");
+        renderOptions->instances[name] = std::vector<std::shared_ptr<Primitive>>();
+        renderOptions->currentInstance = &renderOptions->instances[name];
+    }
+
+    void pbrtObjectEnd()
+    {
+        VERIFY_WORLD("ObjectEnd");
+        if (!renderOptions->currentInstance) Error("ObjectEnd called outside of instance definition");
+        renderOptions->currentInstance = nullptr;
+        pbrtAttributeEnd();
+    }
+
+    void pbrtObjectInstance(const std::string& name)
+    {
+        VERIFY_WORLD("ObjectInstance");
+        if (renderOptions->currentInstance)
+        {
+            Error("ObjectInstance can't be called inside instance definition");
+            return;
+        }
+        if (!renderOptions->instances.contains(name)) 
+        {
+            Error("Unable to find instance named \"%s\"", name.c_str());
+            return;
+        }
+        std::vector<std::shared_ptr<Primitive>>& in = renderOptions->instances[name];
+        if (in.empty()) return;
+        if (in.size() > 1)
+        {
+            std::shared_ptr<Primitive> accel(MakeAccelerator(renderOptions->AcceleratorName, in, renderOptions->AcceleratorParams));
+            if (!accel) accel = std::make_shared<BVHAccel>(in);
+            in.clear();
+            in.push_back(accel);
+        }
+        Transform* InstanceToWorld[2];
+        transformCache.Lookup(curTransform[0], &InstanceToWorld[0], nullptr);
+        transformCache.Lookup(curTransform[1], &InstanceToWorld[1], nullptr);
+        AnimatedTransform animatedInstanceToWorld(InstanceToWorld[0], renderOptions->transformStartTime, InstanceToWorld[1], renderOptions->transformEndTime);
+    }
+
     void pbrtTexture(const std::string& name, const std::string& type, const std::string& texName, const ParamSet& params)
     {
         VERIFY_WORLD("Texture");
         TextureParams tp(params, params, graphicsState.floatTextures, graphicsState.spectrumTextures);
         if (type == "float")
         {
-            if(graphicsState.floatTextures.find(name) != graphicsState.floatTextures.end())
+            if (graphicsState.floatTextures.find(name) != graphicsState.floatTextures.end())
                 Info("Texture \"%s\" being redefined", name.c_str());
             WARN_IF_ANIMATED_TRANSFORM("Texture");
             std::shared_ptr<Texture<float>> ft = MakeFloatTexture(name, curTransform[0], tp);
@@ -462,7 +536,7 @@ do { if (curTransform.IsAnimated())                                   \
             for (auto s : shapes)
             {
                 std::shared_ptr<AreaLight> area;
-                if(!graphicsState.areaLight.empty())
+                if (!graphicsState.areaLight.empty())
                 {
                     area = MakeAreaLight(graphicsState.areaLight, curTransform[0], mi, 
                         graphicsState.areaLightParams, s);
@@ -475,9 +549,9 @@ do { if (curTransform.IsAnimated())                                   \
         {
 	        // for animated shape
         }
-        if(renderOptions->currentInstance != nullptr)
+        if (renderOptions->currentInstance != nullptr)
         {
-	        if(!areaLights.empty()) Warning("Area lights not supported with object instancing");
+	        if (!areaLights.empty()) Warning("Area lights not supported with object instancing");
             renderOptions->currentInstance->insert(renderOptions->currentInstance->end(), prims.begin(), prims.end());
         }
         else
@@ -505,5 +579,18 @@ do { if (curTransform.IsAnimated())                                   \
         for (int i = 0; i < MaxTransforms; ++i)
             tInv.t[i] = Inverse(ts.t[i]);
         return tInv;
+    }
+    Scene* RenderOptions::MakeScene()
+    {
+        std::shared_ptr<Primitive> accelerator = MakeAccelerator(AcceleratorName, primitives, AcceleratorParams);
+        if(!accelerator) accelerator = std::make_shared<BVHAccel>(primitives);
+        Scene* scene = new Scene(accelerator, lights);
+        primitives.clear();
+        lights.clear();
+        return scene;
+    }
+    Integrator* RenderOptions::MakeIntegrator() const
+    {
+        return nullptr;
     }
 }

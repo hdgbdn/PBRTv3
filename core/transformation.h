@@ -185,6 +185,8 @@ namespace pbrt
     class AnimatedTransform : public Transform
     {
     public:
+        AnimatedTransform(const Transform* startTransform,
+            float startTime, const Transform* endTransform, float endTime);
         Bounds3f MotionBounds(const Bounds3f& b) const;
         void Interpolate(float time, Transform* t) const;
     };

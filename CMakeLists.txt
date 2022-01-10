@@ -25,7 +25,7 @@ add_executable(pbrt3 "pbrt.cpp"
                 ${PBRT_SOURCES} 
 )
 
-target_include_directories(pbrt3 PUBLIC core integrators shapes cameras samplers materials filters textures lights)
+target_include_directories(pbrt3 PUBLIC accelerators core integrators shapes cameras samplers materials filters textures lights)
 target_link_libraries(pbrt3 PUBLIC fmt)
 
 # test

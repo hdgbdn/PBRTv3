@@ -17,7 +17,7 @@ namespace pbrt
 		enum class SplitMethod { SAH, HLBVH, Middle, EqualCounts };
 
 		BVHAccel(const std::vector<std::shared_ptr<Primitive>>& p,
-		         int maxPrimsInNode, SplitMethod splitMethod);
+		         int maxPrimsInNode = 1, SplitMethod splitMethod = SplitMethod::SAH);
 		Bounds3f WorldBound() const override;
 		~BVHAccel();
 		bool Intersect(const Ray& r, SurfaceInteraction* isect) const override;

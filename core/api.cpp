@@ -484,7 +484,7 @@ do { if (curTransform.IsAnimated())                                   \
         {
             renderOptions->primitives.insert(renderOptions->primitives.end(),
                 prims.begin(), prims.end());
-            if (areaLights.size())
+            if (!areaLights.empty())
                 renderOptions->lights.insert(renderOptions->lights.end(),
                     areaLights.begin(), areaLights.end());
         }

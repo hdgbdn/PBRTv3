@@ -9,6 +9,7 @@ namespace pbrt
 {
 	std::unique_ptr<RGBSpectrum[]> ReadImage(const std::string& name,
 		Point2i* resolution);
+	void WriteImage(const std::string& name, const float* rgb, const Bounds2i& outputBounds, const Point2i& totalResolution);
 }
 
 #endif

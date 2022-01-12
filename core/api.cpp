@@ -381,7 +381,7 @@ do { if (curTransform.IsAnimated())                                   \
         std::unique_ptr<Integrator> integrator(renderOptions->MakeIntegrator());
         std::unique_ptr<Scene> scene(renderOptions->MakeScene());
         if (scene && integrator) integrator->Render(*scene);
-        TerminateWorkerThreads();
+        //TerminateWorkerThreads();
     }
 
     void pbrtAttributeBegin()

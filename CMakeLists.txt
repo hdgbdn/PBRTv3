@@ -29,6 +29,6 @@ target_include_directories(pbrt3 PUBLIC accelerators core integrators shapes cam
 target_link_libraries(pbrt3 PUBLIC fmt)
 
 # test
-add_executable(test "test.cpp" "core/geometry.cpp")
+add_executable(test "test.cpp" "core/parallel.cpp" "core/stats.cpp" )
 target_include_directories(test PUBLIC core)
 target_link_libraries(test PUBLIC fmt)

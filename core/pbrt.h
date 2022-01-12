@@ -30,6 +30,10 @@ namespace pbrt
 
 	static constexpr float MachineEpsilon = std::numeric_limits<float>::epsilon() * 0.5;
 
+	extern thread_local uint32_t ProfilerState;
+	inline uint32_t CurrentProfilerState() { return ProfilerState; }
+	void ReportThreadStats();
+
 	struct Options
 	{
 		int nThreads = 0;
@@ -206,7 +210,7 @@ namespace pbrt
 		return Clamp(first - 1, 0, size - 2);
 	}
 
-	inline uint32_t floatToBits(float f)
+	inline uint32_t FloatToBits(float f)
 	{
 		uint32_t ui;
 		memcpy(&ui, &f, sizeof(float));
@@ -241,7 +245,7 @@ namespace pbrt
 		if (v == -0.f) v = 0.f;
 
 		// Advance _v_ to next higher float
-		uint32_t ui = floatToBits(v);
+		uint32_t ui = FloatToBits(v);
 		if (v >= 0)
 			++ui;
 		else
@@ -254,7 +258,7 @@ namespace pbrt
 		// Handle infinity and positive zero for _NextFloatDown()_
 		if (std::isinf(v) && v < 0.) return v;
 		if (v == 0.f) v = -0.f;
-		uint32_t ui = floatToBits(v);
+		uint32_t ui = FloatToBits(v);
 		if (v > 0)
 			--ui;
 		else

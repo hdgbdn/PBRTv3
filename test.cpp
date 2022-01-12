@@ -1,9 +1,19 @@
-#include "geometry.h"
+#include <atomic>         // std::atomic
+#include <thread>         // std::thread
+#include <vector>         // std::vector
+#include "fmt/core.h"
+#include <string>
 
-using namespace pbrt;
+#include "parallel.h"
+
 int main()
 {
-	Normal3f n1(1.2f, 4.65f, 21.2f);
-	Vector3f v1(n1);
-	fmt::print("hello world");
+	pbrt::ParallelFor(
+		[&](int i)
+		{
+			std::ostringstream id;
+			id << std::this_thread::get_id();
+			fmt::print("current trunk {}: in thread: {}\n", i, id.str());
+		}, 16);
+	pbrt::ParallelCleanup();
 }

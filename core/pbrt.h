@@ -14,6 +14,18 @@
 
 namespace pbrt
 {
+	// Platform-specific definitions
+#if defined(_WIN32) || defined(_WIN64)
+#define PBRT_IS_WINDOWS
+#endif
+
+#if defined(_MSC_VER)
+#define PBRT_IS_MSVC
+#if _MSC_VER == 1800
+#define snprintf _snprintf
+#endif
+#endif
+
 #ifdef _MSC_VER
 	static constexpr float Maxfloat = std::numeric_limits<float>::max();
 	static constexpr float Infinity = std::numeric_limits<float>::infinity();

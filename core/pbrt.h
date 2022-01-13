@@ -30,10 +30,6 @@ namespace pbrt
 
 	static constexpr float MachineEpsilon = std::numeric_limits<float>::epsilon() * 0.5;
 
-	extern thread_local uint32_t ProfilerState;
-	inline uint32_t CurrentProfilerState() { return ProfilerState; }
-	void ReportThreadStats();
-
 	struct Options
 	{
 		int nThreads = 0;

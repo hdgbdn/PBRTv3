@@ -42,6 +42,31 @@ static void STATS_FUNC##var(StatsAccumulator &accum) {  \
 static StatRegisterer STATS_REG##var(STATS_FUNC##var)
 
     void ReportThreadStats();
+
+    enum class Prof
+    {
+        IntegratorRender,
+        SamplerIntegratorLi,
+        DirectLighting,
+        AccelIntersect,
+        AccelIntersectP,
+        TriIntersect,
+        TriIntersectP,
+        ComputeScatteringFuncs,
+        GenerateCameraRay,
+        BSDFEvaluation,
+        BSSRDFEvaluation,
+        MergeFilmTile,
+        SplatFilm,
+        StartPixel,
+        TexFiltTrilerp,
+        TexFiltEWA,
+        NumProfEvents
+    };
+
+    extern thread_local uint32_t ProfilerState;
+
+    inline uint32_t CurrentProfilerState() { return ProfilerState; }
 }
 
 #endif

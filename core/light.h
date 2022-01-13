@@ -10,7 +10,11 @@ namespace pbrt
 	enum class LightFlags : int {
 		DeltaPosition = 1, DeltaDirection = 2, Area = 4, Infinite = 8
 	};
-	inline bool IsDeltaLight(int flags);
+	inline bool IsDeltaLight(int flags)
+    {
+        return flags & (int)LightFlags::DeltaPosition ||
+               flags & (int)LightFlags::DeltaDirection;
+    }
 
 	class Light
 	{

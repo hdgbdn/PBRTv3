@@ -145,4 +145,10 @@ namespace pbrt
         else
             return D(wh) * AbsCosTheta(wh);
     }
+
+    Vector3f TrowbridgeReitzDistribution::Sample_wh(const Vector3f &wo, const Point2f &u) const
+    {
+        // TODO need implement
+        return pbrt::Vector3f();
+    }
 }

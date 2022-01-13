@@ -49,78 +49,6 @@ namespace pbrt
 		return 0.5 * (Rp + Rs);
 	}
 
-	float CosTheta(const Vector3f& w)
-	{ return w.z; }
-
-	float Cos2Theta(const Vector3f& w)
-	{ return w.z * w.z; }
-
-	float AbsCosTheta(const Vector3f& w)
-	{ return std::abs(w.z); }
-
-	float Sin2Theta(const Vector3f& w)
-	{
-		return std::max((float)0, (float)1 - Cos2Theta(w));
-	}
-
-	float SinTheta(const Vector3f& w)
-	{ return std::sqrt(Sin2Theta(w)); }
-
-	float TanTheta(const Vector3f& w)
-	{ return SinTheta(w) / CosTheta(w); }
-
-	float Tan2Theta(const Vector3f& w)
-	{
-		return Sin2Theta(w) / Cos2Theta(w);
-	}
-
-	float CosPhi(const Vector3f& w)
-	{
-		float sinTheta = SinTheta(w);
-		return (sinTheta == 0) ? 1 : Clamp(w.x / sinTheta, -1, 1);
-	}
-
-	float SinPhi(const Vector3f& w)
-	{
-		float sinTheta = SinTheta(w);
-		return (sinTheta == 0) ? 0 : Clamp(w.y / sinTheta, -1, 1);
-	}
-
-	float Cos2Phi(const Vector3f& w)
-	{ return CosPhi(w) * CosPhi(w); }
-
-	float Sin2Phi(const Vector3f& w)
-	{ return SinPhi(w) * SinPhi(w); }
-
-	float CosDPhi(const Vector3f& wa, const Vector3f& wb)
-	{
-		float waxy = wa.x * wa.x + wa.y * wa.y;
-		float wbxy = wb.x * wb.x + wb.y * wb.y;
-		if (waxy == 0 || wbxy == 0)
-			return 1;
-		return Clamp((wa.x * wb.x + wa.y * wb.y) / std::sqrt(waxy * wbxy), -1, 1);
-	}
-
-	Vector3f Reflect(const Vector3f& wo, const Vector3f& n)
-	{
-		return -wo + 2 * Dot(wo, n) * n;
-	}
-
-	bool Refract(const Vector3f& wi, const Normal3f& n, float eta, Vector3f* wt)
-	{
-		float cosThetaI = Dot(n, wi);
-		float sin2ThetaI = std::max(0.f, 1.f - cosThetaI * cosThetaI);
-		float sin2ThetaT = eta * eta * sin2ThetaI;
-		if (sin2ThetaI >= 1) return false;
-		float cosThetaT = std::sqrt(1 - sin2ThetaT);
-		*wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vector3f(n);
-		return true;
-	}
-
-	bool SameHemisphere(const Vector3f& w, const Vector3f& wp)
-	{
-		return w.z * wp.z > 0;
-	}
 
 	FourierBSDFTable::~FourierBSDFTable()
 	{
@@ -183,7 +111,26 @@ namespace pbrt
 		return scale * bxdf->rho(nSamples, samples1, samples2);
 	}
 
-	SpecularReflection::SpecularReflection(const Spectrum& R, Fresnel* fresnel): BxDF(BxDFType(BSDF_REFLECTION | BSDF_SPECULAR)),
+    Spectrum ScaledBxDF::f(const Vector3f &wo, const Vector3f &wi) const
+    {
+        // TODO implement
+        return pbrt::Spectrum();
+    }
+
+    Spectrum ScaledBxDF::Sample_f(const Vector3f &wo, Vector3f *wi, const Point2f &sample, float *pdf,
+                                  BxDFType *sampledType) const
+    {
+        // TODO implement
+        return BxDF::Sample_f(wo, wi, sample, pdf, sampledType);
+    }
+
+    float ScaledBxDF::Pdf(const Vector3f& wo, const Vector3f& wi) const
+    {
+        // TODO implement
+        return 1.f;
+    }
+
+    SpecularReflection::SpecularReflection(const Spectrum& R, Fresnel* fresnel): BxDF(BxDFType(BSDF_REFLECTION | BSDF_SPECULAR)),
 		R(R), fresnel(fresnel)
 	{
 	}

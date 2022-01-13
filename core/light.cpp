@@ -3,12 +3,6 @@
 
 namespace pbrt
 {
-	bool IsDeltaLight(int flags)
-	{
-		return flags & (int)LightFlags::DeltaPosition ||
-			flags & (int)LightFlags::DeltaDirection;
-	}
-
 	void Light::Preprocess(const Scene& scene)
 	{ }
 

@@ -2,9 +2,7 @@
 #include "error.h"
 #include "transformation.h"
 #include "spectrum.h"
-
 #include <map>
-
 #include "medium.h"
 #include "memory.h"
 #include "paramset.h"
@@ -87,13 +85,23 @@ namespace pbrt
         std::shared_ptr<Material> CreateMaterial(const ParamSet& params);
     };
 
+    MediumInterface GraphicsState::CreateMediumInterface()
+    {
+        return MediumInterface();
+    }
+
+    std::shared_ptr<Material> GraphicsState::CreateMaterial(const ParamSet &params)
+    {
+        return std::shared_ptr<Material>();
+    }
+
     class TransformCache
     {
     public:
         TransformCache() = default;
 		void Lookup(const Transform& trans, Transform** origin, Transform** inverse)
 		{
-			if (cache.contains(trans))
+			if (cache.find(trans) != cache.end())
 			{
                 *origin = cache[trans].first;
                 *inverse = cache[trans].second;

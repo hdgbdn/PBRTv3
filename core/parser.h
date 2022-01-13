@@ -5,9 +5,7 @@
 
 namespace pbrt
 {
-	void pbrtParseFile(std::string filename)
-	{
-	}
+	void pbrtParseFile(std::string filename);
 }
 
 #endif

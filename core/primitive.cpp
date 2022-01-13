@@ -63,7 +63,12 @@ namespace pbrt
 		return true;
 	}
 
-	const AreaLight* Aggregate::GetAreaLight() const {
+    bool TransformedPrimitive::IntersectP(const Ray &)
+    {
+        return false;
+    }
+
+    const AreaLight* Aggregate::GetAreaLight() const {
 		// TODO fatal error;
 		return nullptr;
 	}

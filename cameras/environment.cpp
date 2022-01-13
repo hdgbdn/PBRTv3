@@ -15,4 +15,10 @@ namespace pbrt
 		return 1;
 	}
 
+    float EnvironmentCamera::GenerateRayDifferential(const CameraSample &sample, RayDifferential *rd) const
+    {
+        // TODO need implement
+        return 0.f;
+    }
+
 }

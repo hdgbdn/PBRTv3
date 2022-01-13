@@ -133,6 +133,56 @@ namespace pbrt
             Z.c[i] = AverageSpectrumSamples(CIE_lambda, CIE_Z, nCIESamples,
                 wl0, wl1);
 	    }
+
+        // Compute RGB to spectrum functions for _SampledSpectrum_
+        for (int i = 0; i < nSpectralSamples; ++i) {
+            float wl0 = Lerp(float(i) / float(nSpectralSamples),
+                             sampledLambdaStart, sampledLambdaEnd);
+            float wl1 = Lerp(float(i + 1) / float(nSpectralSamples),
+                             sampledLambdaStart, sampledLambdaEnd);
+            rgbRefl2SpectWhite.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectWhite,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbRefl2SpectCyan.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectCyan,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbRefl2SpectMagenta.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectMagenta,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbRefl2SpectYellow.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectYellow,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbRefl2SpectRed.c[i] = AverageSpectrumSamples(
+                    RGB2SpectLambda, RGBRefl2SpectRed, nRGB2SpectSamples, wl0, wl1);
+            rgbRefl2SpectGreen.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectGreen,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbRefl2SpectBlue.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectBlue,
+                                           nRGB2SpectSamples, wl0, wl1);
+
+            rgbIllum2SpectWhite.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectWhite,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbIllum2SpectCyan.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectCyan,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbIllum2SpectMagenta.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectMagenta,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbIllum2SpectYellow.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectYellow,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbIllum2SpectRed.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectRed,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbIllum2SpectGreen.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectGreen,
+                                           nRGB2SpectSamples, wl0, wl1);
+            rgbIllum2SpectBlue.c[i] =
+                    AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectBlue,
+                                           nRGB2SpectSamples, wl0, wl1);
+        }
     }
 
     const float CIE_X[nCIESamples] = {
@@ -884,6 +934,25 @@ namespace pbrt
         795, 796, 797, 798, 799, 800, 801, 802, 803, 804, 805, 806, 807, 808, 809,
         810, 811, 812, 813, 814, 815, 816, 817, 818, 819, 820, 821, 822, 823, 824,
         825, 826, 827, 828, 829, 830 };
+
+    // Spectral Data Definitions
+    SampledSpectrum SampledSpectrum::X;
+    SampledSpectrum SampledSpectrum::Y;
+    SampledSpectrum SampledSpectrum::Z;
+    SampledSpectrum SampledSpectrum::rgbRefl2SpectWhite;
+    SampledSpectrum SampledSpectrum::rgbRefl2SpectCyan;
+    SampledSpectrum SampledSpectrum::rgbRefl2SpectMagenta;
+    SampledSpectrum SampledSpectrum::rgbRefl2SpectYellow;
+    SampledSpectrum SampledSpectrum::rgbRefl2SpectRed;
+    SampledSpectrum SampledSpectrum::rgbRefl2SpectGreen;
+    SampledSpectrum SampledSpectrum::rgbRefl2SpectBlue;
+    SampledSpectrum SampledSpectrum::rgbIllum2SpectWhite;
+    SampledSpectrum SampledSpectrum::rgbIllum2SpectCyan;
+    SampledSpectrum SampledSpectrum::rgbIllum2SpectMagenta;
+    SampledSpectrum SampledSpectrum::rgbIllum2SpectYellow;
+    SampledSpectrum SampledSpectrum::rgbIllum2SpectRed;
+    SampledSpectrum SampledSpectrum::rgbIllum2SpectGreen;
+    SampledSpectrum SampledSpectrum::rgbIllum2SpectBlue;
 
     const float RGB2SpectLambda[nRGB2SpectSamples] = {
     380.000000, 390.967743, 401.935486, 412.903229, 423.870972, 434.838715,

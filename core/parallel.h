@@ -2,7 +2,10 @@
 #define PBRT_CORE_PARALLEL_H
 
 #include "pbrt.h"
+#include "geometry.h"
+#include <thread>
 #include <functional>
+
 
 namespace pbrt
 {
@@ -34,6 +37,7 @@ namespace pbrt
 
 	void ParallelFor(const std::function<void(int)>& func, int count,
 	                 int chunkSize = 1);
+    void ParallelFor2D(std::function<void(Point2i)> func, const Point2i& count);
 }
 
 

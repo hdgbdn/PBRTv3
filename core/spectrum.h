@@ -307,6 +307,7 @@ namespace pbrt
 		static SampledSpectrum rgbIllum2SpectBlue;
 	};
 
+
 	class RGBSpectrum : public CoefficientSpectrum<3>
 	{
 	public:

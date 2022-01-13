@@ -11,7 +11,7 @@ namespace pbrt
 	public:
 		Shape(const std::shared_ptr<Transform>& ObjectToWorld,
 			const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation);
-		virtual ~Shape();
+		virtual ~Shape() = default;
 		virtual Bounds3f ObjectBound() const = 0;
 		virtual Bounds3f WorldBound() const;
 		virtual bool IntersectP(const Ray& ray,

@@ -1,5 +1,6 @@
 #include "parallel.h"
 #include "stats.h"
+#include <condition_variable>
 
 namespace pbrt
 {
@@ -129,6 +130,11 @@ namespace pbrt
 			lock.lock();
 			loop.activeWorkers--;
 		}
+	}
+
+	void ParallelFor2D(std::function<void(Point2i)> func, const Point2i& count)
+	{
+
 	}
 
 	void ParallelCleanup() {

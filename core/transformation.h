@@ -19,7 +19,12 @@ namespace pbrt
             float t00, float t01, float t02, float t03,
             float t10, float t11, float t12, float t13,
             float t20, float t21, float t22, float t23,
-            float t30, float t31, float t32, float t33);
+            float t30, float t31, float t32, float t33)
+            : m{{t00, t01, t02, t03},
+                {t10, t11, t12, t13},
+                {t20, t21, t22, t23},
+                {t30, t31, t32, t33} }
+        {}
         bool operator==(const Matrix4x4& m2) const {
             for (int i = 0; i < 4; ++i)
                 for (int j = 0; j < 4; ++j)
@@ -82,8 +87,8 @@ namespace pbrt
         friend Transform Transpose(const Transform& t);
 	public:
         Transform() = default;
-        Transform(const float mat[4][4]);
-        Transform(const Matrix4x4& m) : m(m), mInv(Inverse(m)) {}
+        explicit Transform(const float mat[4][4]);
+        explicit Transform(const Matrix4x4& m) : m(m), mInv(Inverse(m)) {}
         Transform(const Matrix4x4& m, const Matrix4x4& mInv);
         bool HasScale() const;
         bool SwapsHandedness() const;
@@ -106,6 +111,9 @@ namespace pbrt
         template <typename T>
         inline Point3<T> operator()(const Point3<T>& p, const Vector3<T>& pError,
             Vector3<T>* pTransError) const;
+        template <typename T>
+        inline Vector3<T> operator()(const Vector3<T> &v,
+                                     Vector3<T> *vTransError) const;
         Bounds3f operator()(const Bounds3f& b) const;
         Ray operator()(const Ray& r) const;
         inline Ray operator()(const Ray& r, Vector3f* oError,
@@ -114,6 +122,14 @@ namespace pbrt
         Transform operator*(const Transform& t2) const;
 		bool operator==(const Transform& t) const { return m == t.m && mInv == t.mInv; }
         bool operator!=(const Transform& t) const { return m != t.m || mInv != t.mInv; }
+        bool operator<(const Transform &t2) const {
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j) {
+                    if (m.m[i][j] < t2.m.m[i][j]) return true;
+                    if (m.m[i][j] > t2.m.m[i][j]) return false;
+                }
+            return false;
+        }
 	private:
         Matrix4x4 m, mInv;
 	};
@@ -182,11 +198,100 @@ namespace pbrt
             Matrix4x4::Mul(t2.mInv, mInv));
     }
 
+    template<typename T>
+    Point3<T> Transform::operator()(const Point3<T> &p, Vector3<T> *pError) const {
+        T x = p.x, y = p.y, z = p.z;
+        // Compute transformed coordinates from point _pt_
+        T xp = (m.m[0][0] * x + m.m[0][1] * y) + (m.m[0][2] * z + m.m[0][3]);
+        T yp = (m.m[1][0] * x + m.m[1][1] * y) + (m.m[1][2] * z + m.m[1][3]);
+        T zp = (m.m[2][0] * x + m.m[2][1] * y) + (m.m[2][2] * z + m.m[2][3]);
+        T wp = (m.m[3][0] * x + m.m[3][1] * y) + (m.m[3][2] * z + m.m[3][3]);
+
+        // Compute absolute error for transformed point
+        T xAbsSum = (std::abs(m.m[0][0] * x) + std::abs(m.m[0][1] * y) +
+                     std::abs(m.m[0][2] * z) + std::abs(m.m[0][3]));
+        T yAbsSum = (std::abs(m.m[1][0] * x) + std::abs(m.m[1][1] * y) +
+                     std::abs(m.m[1][2] * z) + std::abs(m.m[1][3]));
+        T zAbsSum = (std::abs(m.m[2][0] * x) + std::abs(m.m[2][1] * y) +
+                     std::abs(m.m[2][2] * z) + std::abs(m.m[2][3]));
+        *pError = gamma(3) * Vector3<T>(xAbsSum, yAbsSum, zAbsSum);
+        // CHECK_NE(wp, 0);
+        if (wp == 1)
+            return Point3<T>(xp, yp, zp);
+        else
+            return Point3<T>(xp, yp, zp) / wp;
+    }
+
+    template<typename T>
+    Point3<T> Transform::operator()(const Point3<T> &pt, const Vector3<T> &ptError, Vector3<T> *absError) const {
+        T x = pt.x, y = pt.y, z = pt.z;
+        T xp = (m.m[0][0] * x + m.m[0][1] * y) + (m.m[0][2] * z + m.m[0][3]);
+        T yp = (m.m[1][0] * x + m.m[1][1] * y) + (m.m[1][2] * z + m.m[1][3]);
+        T zp = (m.m[2][0] * x + m.m[2][1] * y) + (m.m[2][2] * z + m.m[2][3]);
+        T wp = (m.m[3][0] * x + m.m[3][1] * y) + (m.m[3][2] * z + m.m[3][3]);
+        absError->x =
+                (gamma(3) + (T)1) *
+                (std::abs(m.m[0][0]) * ptError.x + std::abs(m.m[0][1]) * ptError.y +
+                 std::abs(m.m[0][2]) * ptError.z) +
+                gamma(3) * (std::abs(m.m[0][0] * x) + std::abs(m.m[0][1] * y) +
+                            std::abs(m.m[0][2] * z) + std::abs(m.m[0][3]));
+        absError->y =
+                (gamma(3) + (T)1) *
+                (std::abs(m.m[1][0]) * ptError.x + std::abs(m.m[1][1]) * ptError.y +
+                 std::abs(m.m[1][2]) * ptError.z) +
+                gamma(3) * (std::abs(m.m[1][0] * x) + std::abs(m.m[1][1] * y) +
+                            std::abs(m.m[1][2] * z) + std::abs(m.m[1][3]));
+        absError->z =
+                (gamma(3) + (T)1) *
+                (std::abs(m.m[2][0]) * ptError.x + std::abs(m.m[2][1]) * ptError.y +
+                 std::abs(m.m[2][2]) * ptError.z) +
+                gamma(3) * (std::abs(m.m[2][0] * x) + std::abs(m.m[2][1] * y) +
+                            std::abs(m.m[2][2] * z) + std::abs(m.m[2][3]));
+        //CHECK_NE(wp, 0);
+        if (wp == 1.)
+            return Point3<T>(xp, yp, zp);
+        else
+            return Point3<T>(xp, yp, zp) / wp;
+    }
+
+    Ray Transform::operator()(const Ray &r, Vector3f *oError, Vector3f *dError) const {
+        Point3f o = (*this)(r.o, oError);
+        Vector3f d = (*this)(r.d, dError);
+        float tMax = r.tMax;
+        float lengthSquared = d.LengthSquared();
+        if (lengthSquared > 0) {
+            float dt = Dot(Abs(d), *oError) / lengthSquared;
+            o += d * dt;
+            //        tMax -= dt;
+        }
+        return Ray(o, d, tMax, r.time, r.medium);
+    }
+
+    template<typename T>
+    Vector3<T> Transform::operator()(const Vector3<T> &v, Vector3<T> *absError) const {
+        T x = v.x, y = v.y, z = v.z;
+        absError->x =
+                gamma(3) * (std::abs(m.m[0][0] * v.x) + std::abs(m.m[0][1] * v.y) +
+                            std::abs(m.m[0][2] * v.z));
+        absError->y =
+                gamma(3) * (std::abs(m.m[1][0] * v.x) + std::abs(m.m[1][1] * v.y) +
+                            std::abs(m.m[1][2] * v.z));
+        absError->z =
+                gamma(3) * (std::abs(m.m[2][0] * v.x) + std::abs(m.m[2][1] * v.y) +
+                            std::abs(m.m[2][2] * v.z));
+        return Vector3<T>(m.m[0][0] * x + m.m[0][1] * y + m.m[0][2] * z,
+                          m.m[1][0] * x + m.m[1][1] * y + m.m[1][2] * z,
+                          m.m[2][0] * x + m.m[2][1] * y + m.m[2][2] * z);
+    }
+
     class AnimatedTransform : public Transform
     {
     public:
         AnimatedTransform(const Transform* startTransform,
-            float startTime, const Transform* endTransform, float endTime);
+            float startTime, const Transform* endTransform, float endTime)
+            {
+                // TODO need implement
+            };
         Bounds3f MotionBounds(const Bounds3f& b) const;
         void Interpolate(float time, Transform* t) const;
     };

@@ -11,7 +11,8 @@ namespace pbrt
 	class Sampler
 	{
 	public:
-		Sampler(int64_t samplesPerPixel);
+		Sampler(int64_t samplesPerPixel): samplesPerPixel(samplesPerPixel)
+        {}
 		virtual std::unique_ptr<Sampler> Clone(int seed) = 0;
 		virtual void StartPixel(const Point2i& p);
 		virtual bool StartNextSample();

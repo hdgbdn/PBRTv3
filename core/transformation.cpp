@@ -286,11 +286,22 @@ namespace pbrt
 		return Scale(invTanAng, invTanAng, 1) * Transform(persp);
 	}
 
-	inline SurfaceInteraction Transform::operator()(const SurfaceInteraction& si) const
+    SurfaceInteraction Transform::operator()(const SurfaceInteraction& si) const
 	{
 		SurfaceInteraction ret;
 		//TODO Transform p and pError in SurfaceInteraction
 		//TODO Transform remaining members of SurfaceInteraction
 		return ret;
 	}
+
+    void AnimatedTransform::Interpolate(float time, Transform *t) const
+    {
+        // TODO need implement
+    }
+
+    Bounds3f AnimatedTransform::MotionBounds(const Bounds3f &b) const
+    {
+        // TODO need implement
+        return pbrt::Bounds3f();
+    }
 }

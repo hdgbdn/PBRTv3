@@ -9,7 +9,7 @@
 #include <memory>
 #include <algorithm>
 #include <mutex>
-
+#include <cmath>
 #include "error.h"
 
 namespace pbrt
@@ -30,8 +30,8 @@ namespace pbrt
 	static constexpr float Maxfloat = std::numeric_limits<float>::max();
 	static constexpr float Infinity = std::numeric_limits<float>::infinity();
 #else
-	static PBRT_CONSTEXPR float Maxfloat = std::numeric_limits<float>::max();
-	static PBRT_CONSTEXPR float Infinity = std::numeric_limits<float>::infinity();
+	static constexpr float Maxfloat = std::numeric_limits<float>::max();
+	static constexpr float Infinity = std::numeric_limits<float>::infinity();
 #endif
 
 #ifndef PBRT_L1_CACHE_LINE_SIZE
@@ -168,9 +168,13 @@ namespace pbrt
 
 	inline int Log2Int(uint32_t v)
 	{
-		unsigned long lz = 0;
-		if (_BitScanReverse(&lz, v)) return lz;
-		return 0;
+#if defined(PBRT_IS_MSVC)
+        unsigned long lz = 0;
+    if (_BitScanReverse(&lz, v)) return lz;
+    return 0;
+#else
+        return 31 - __builtin_clz(v);
+#endif
 	}
 
 	template <typename T, typename U, typename V>
@@ -316,7 +320,15 @@ namespace pbrt
 	}
 
 	inline int CountTrailingZeros(uint32_t v) {
-		return __lzcnt(v);
+#if defined(PBRT_IS_MSVC)
+        unsigned long index;
+    if (_BitScanForward(&index, v))
+        return index;
+    else
+        return 32;
+#else
+        return __builtin_ctz(v);
+#endif
 	}
 
 	inline constexpr float gamma(int n)

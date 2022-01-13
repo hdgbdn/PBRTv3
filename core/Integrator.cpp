@@ -79,7 +79,20 @@ namespace pbrt
 			return { 0.f };
 	}
 
-	Spectrum UniformSampleAllLights(const Interaction& it, const Scene& scene, MemoryArena& arena, Sampler& sampler,
+    void SamplerIntegrator::Preprocess(const Scene &scene, Sampler &sampler)
+    {
+        // TODO implement
+    }
+
+    Spectrum
+    SamplerIntegrator::SpecularTransmit(const RayDifferential &ray, const SurfaceInteraction &isect, const Scene &scene,
+                                        Sampler &sampler, MemoryArena &arena, int depth) const
+    {
+        // TODO implement
+        return pbrt::Spectrum();
+    }
+
+    Spectrum UniformSampleAllLights(const Interaction& it, const Scene& scene, MemoryArena& arena, Sampler& sampler,
 		const std::vector<int>& nLightSamples, bool handleMedia)
 	{
 		Spectrum L(0.f);

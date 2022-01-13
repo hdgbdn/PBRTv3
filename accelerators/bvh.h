@@ -19,7 +19,7 @@ namespace pbrt
 		BVHAccel(const std::vector<std::shared_ptr<Primitive>>& p,
 		         int maxPrimsInNode = 1, SplitMethod splitMethod = SplitMethod::SAH);
 		Bounds3f WorldBound() const override;
-		~BVHAccel();
+		~BVHAccel() override;
 		bool Intersect(const Ray& r, SurfaceInteraction* isect) const override;
 		bool IntersectP(const Ray&) override;
 	private:

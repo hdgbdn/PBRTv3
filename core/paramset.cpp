@@ -22,6 +22,11 @@ namespace pbrt
 		return d;
 	}
 
+    int ParamSet::FindOneInt(const std::string &name, int d) const
+    {
+        return 0;
+    }
+
 	float ParamSet::FindOneFloat(const std::string& name, float d) const
 	{
 		for(const auto& f : floats)
@@ -31,6 +36,36 @@ namespace pbrt
 			}
 		return d;
 	}
+
+    Point2f ParamSet::FindOnePoint2f(const std::string &name, const Point2f &d) const
+    {
+        return pbrt::Point2f();
+    }
+
+    Vector2f ParamSet::FindOneVector2f(const std::string &name, const Vector2f &d) const
+    {
+        return pbrt::Vector2f();
+    }
+
+    Point3f ParamSet::FindOnePoint3f(const std::string &name, const Point3f &d) const
+    {
+        return pbrt::Point3f();
+    }
+
+    Normal3f ParamSet::FindOneNormal3f(const std::string &name, const Normal3f &d) const
+    {
+        return pbrt::Normal3f();
+    }
+
+    std::string ParamSet::FindOneString(const std::string &name, const std::string &d) const
+    {
+        return std::string();
+    }
+
+    Spectrum ParamSet::FindOneSpectrum(const std::string &name, const Spectrum &d) const
+    {
+        return pbrt::Spectrum();
+    }
 
 	void ParamSet::Clear()
 	{
@@ -46,7 +81,19 @@ namespace pbrt
 		strings.clear();
 		textures.clear();
 	}
-	std::shared_ptr<Texture<Spectrum>> TextureParams::GetSpectrumTexture(const std::string& n, const Spectrum& d) const
+
+    std::string ParamSet::FindTexture(const std::string &) const
+    {
+        // TODO implement
+        return std::string();
+    }
+
+    void ParamSet::ReportUnused() const
+    {
+        // TODO implement
+    }
+
+    std::shared_ptr<Texture<Spectrum>> TextureParams::GetSpectrumTexture(const std::string& n, const Spectrum& d) const
 	{
 		std::string name = geoParams.FindTexture(n);
 		if (name.empty()) name = materialParams.FindTexture(n);

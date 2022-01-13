@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(pbrt3)
+project(pbrt)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,12 +21,12 @@ file(GLOB PBRT_SOURCES
     lights/*.cpp
 )
 
-add_executable(pbrt3 "pbrt.cpp" 
+add_executable(${CMAKE_PROJECT_NAME} "pbrt.cpp" 
                 ${PBRT_SOURCES} 
 )
 
-target_include_directories(pbrt3 PUBLIC accelerators core integrators shapes cameras samplers materials filters textures lights)
-target_link_libraries(pbrt3 PUBLIC fmt)
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC accelerators core integrators shapes cameras samplers materials filters textures lights)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fmt)
 
 # test
 add_executable(test "test.cpp" "core/parallel.cpp" "core/stats.cpp" )

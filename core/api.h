@@ -2,6 +2,7 @@
 #define PBRT_CORE_API_H
 
 #include "pbrt.h"
+#include "parser.h"
 
 namespace pbrt
 {

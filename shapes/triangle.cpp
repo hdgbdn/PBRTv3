@@ -199,5 +199,10 @@ namespace pbrt
         return 0.5 * Cross(p1 - p0, p2 - p0).Length();
     }
 
+    bool Triangle::IntersectP(const Ray &ray, bool testAlphaTexture) const
+    {
+        return Shape::IntersectP(ray, testAlphaTexture);
+    }
+
 
 }

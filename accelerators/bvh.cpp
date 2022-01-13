@@ -578,5 +578,16 @@ namespace pbrt
 		return hit;
 	}
 
+    BVHAccel::~BVHAccel()
+    {
+        FreeAligned(linearNodes);
+    }
+
+    bool BVHAccel::IntersectP(const Ray &)
+    {
+        // TODO need implement
+        return false;
+    }
+
 
 }

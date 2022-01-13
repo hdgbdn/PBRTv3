@@ -17,7 +17,7 @@ namespace pbrt
 		T Evaluate(const SurfaceInteraction* si) const
 		{
 			T t1 = tex1->Evaluate(si), t2 = tex2->Evaluate(si);
-			float amt = amount->Evaluate(si);
+			float amt = amount->Evaluate(*si);
 			return (1 - amt) * t1 + amt * t2;
 		}
 	private:

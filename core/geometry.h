@@ -455,6 +455,9 @@ namespace pbrt
 			return y;
 		}
 
+        bool operator==(const Point2<T> &p) const { return x == p.x && y == p.y; }
+        bool operator!=(const Point2<T> &p) const { return x != p.x || y != p.y; }
+
 		T x, y;
 	};
 
@@ -713,11 +716,9 @@ namespace pbrt
 	class Normal3
 	{
 	public:
-		Normal3<T>(): x(0), y(0), z(0)
-		{
-		}
+		Normal3() = default;
 
-		Normal3<T>(T xx, T yy, T zz) : x(xx), y(yy), z(zz)
+		Normal3(T xx, T yy, T zz) : x(xx), y(yy), z(zz)
 		{
 			assert(!HasNaNs());
 		}
@@ -992,7 +993,7 @@ namespace pbrt
 			return Bounds2<U>((Point2<U>)pMin, (Point2<U>)pMax);
 		}
 
-		Vector2<T> Diagonal() const;
+        Vector2<T> Diagonal() const { return pMax - pMin; }
 		Point2<T> pMin, pMax;
 
 		Bounds2& operator=(const Bounds2& rhs)
@@ -1012,7 +1013,6 @@ namespace pbrt
 			return b.pMin != pMin || b.pMax != pMax;
 		}
 
-		template <typename T>
 		Vector2<T> Offset(const Point2<T>& p) const
 		{
 			Vector2<T> o = p - pMin;
@@ -1048,19 +1048,55 @@ namespace pbrt
 			p.y >= b.pMin.y && p.y < b.pMax.y);
 	}
 
-	class Bounds2iIterator : public std::forward_iterator_tag
-	{
-	public:
-		Bounds2iIterator operator++();
-		Bounds2iIterator operator++(int);
-		bool operator==(const Bounds2iIterator& bi) const;
-		bool operator!=(const Bounds2iIterator& bi) const;
-		Point2i operator*() const;
-	};
+    class Bounds2iIterator : public std::forward_iterator_tag {
+    public:
+        Bounds2iIterator(const Bounds2i &b, const Point2i &pt)
+                : p(pt), bounds(&b) {}
+        Bounds2iIterator operator++() {
+            advance();
+            return *this;
+        }
+        Bounds2iIterator operator++(int) {
+            Bounds2iIterator old = *this;
+            advance();
+            return old;
+        }
+        bool operator==(const Bounds2iIterator &bi) const {
+            return p == bi.p && bounds == bi.bounds;
+        }
+        bool operator!=(const Bounds2iIterator &bi) const {
+            return p != bi.p || bounds != bi.bounds;
+        }
 
-	inline Bounds2iIterator begin(const Bounds2i& b);
-	inline Bounds2iIterator end(const Bounds2i& e);
+        Point2i operator*() const { return p; }
 
+    private:
+        void advance() {
+            ++p.x;
+            if (p.x == bounds->pMax.x) {
+                p.x = bounds->pMin.x;
+                ++p.y;
+            }
+        }
+        Point2i p;
+        const Bounds2i *bounds;
+    };
+
+    inline Bounds2iIterator begin(const Bounds2i &b) {
+        return {b, b.pMin};
+    }
+
+    inline Bounds2iIterator end(const Bounds2i &b) {
+        // Normally, the ending point is at the minimum x value and one past
+        // the last valid y value.
+        Point2i pEnd(b.pMin.x, b.pMax.y);
+        // However, if the bounds are degenerate, override the end point to
+        // equal the start point so that any attempt to iterate over the bounds
+        // exits out immediately.
+        if (b.pMin.x >= b.pMax.x || b.pMin.y >= b.pMax.y)
+            pEnd = b.pMin;
+        return {b, pEnd};
+    }
 	template <typename T>
 	class Bounds3
 	{
@@ -1204,7 +1240,6 @@ namespace pbrt
 			float tNear = (pMin.x - ray.o[i]) * invRayDir;
 			float tFar = (pMax.x - ray.o[i]) * invRayDir;
 			if (tNear > tFar) std::swap(tNear, tFar);
-			// TODO Update tFar to ensure robust ray–bounds intersection
 			t0 = tNear > t0 ? tNear : t0;
 			t1 = tFar < t1 ? tFar : t1;
 			if (t0 > t1) return false;

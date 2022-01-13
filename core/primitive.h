@@ -14,7 +14,7 @@ namespace pbrt
 		virtual ~Primitive() = default;
 		virtual Bounds3f WorldBound() const = 0;
 		virtual bool Intersect(const Ray& r, SurfaceInteraction* isect) const = 0;
-		virtual bool IntersectP(const Ray&);
+		virtual bool IntersectP(const Ray&) = 0;
 		virtual const AreaLight* GetAreaLight() const = 0;
 		virtual const Material* GetMaterial() const = 0;
 		virtual void ComputeScatteringFunctions(SurfaceInteraction* isect,

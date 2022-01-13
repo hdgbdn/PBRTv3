@@ -67,6 +67,26 @@ static StatRegisterer STATS_REG##var(STATS_FUNC##var)
     extern thread_local uint32_t ProfilerState;
 
     inline uint32_t CurrentProfilerState() { return ProfilerState; }
+
+    class ProfilePhase
+    {
+    public:
+		ProfilePhase(Prof p)
+		{
+            categoryBit = (1 << (int)p);
+            reset = (ProfilerState & categoryBit) == 0;
+            ProfilerState |= categoryBit;
+		}
+        ~ProfilePhase()
+		{
+            if (reset) ProfilerState &= ~categoryBit;
+		}
+    private:
+        bool reset;
+        uint32_t categoryBit;
+    };
+
+    void InitProfiler();
 }
 
 #endif

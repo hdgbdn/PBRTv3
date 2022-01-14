@@ -30,9 +30,14 @@ namespace pbrt
         {
             counters[name] += val;
         }
+        void ReportMemoryCounter(const std::string &name, int64_t val) {
+            memoryCounters[name] += val;
+        }
     private:
         std::map<std::string, int64_t> counters;
+        std::map<std::string, int64_t> memoryCounters;
     };
+
 #define STAT_COUNTER(title, var)                        \
 static thread_local int64_t var;                        \
 static void STATS_FUNC##var(StatsAccumulator &accum) {  \
@@ -40,6 +45,14 @@ static void STATS_FUNC##var(StatsAccumulator &accum) {  \
     var = 0;                                            \
 }                                                       \
 static StatRegisterer STATS_REG##var(STATS_FUNC##var)
+
+#define STAT_MEMORY_COUNTER(title, var)                    \
+    static thread_local int64_t var;                  \
+    static void STATS_FUNC##var(StatsAccumulator &accum) { \
+        accum.ReportMemoryCounter(title, var);             \
+        var = 0;                                           \
+    }                                                      \
+    static StatRegisterer STATS_REG##var(STATS_FUNC##var)
 
     void ReportThreadStats();
 

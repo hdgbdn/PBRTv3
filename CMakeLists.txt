@@ -28,6 +28,15 @@ add_executable(${CMAKE_PROJECT_NAME} "pbrt.cpp"
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC accelerators core integrators shapes cameras samplers materials filters textures lights)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fmt)
 
+if (MSVC)
+
+else()
+    # MinGW compiler on Window, link C&C++ standard libraies statically
+    target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC -static)
+endif()
+
+
+
 # test
 add_executable(test "test.cpp" "core/parallel.cpp" "core/stats.cpp" )
 target_include_directories(test PUBLIC core)

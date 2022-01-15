@@ -5,12 +5,9 @@
 
 namespace pbrt
 {
-	template <typename T>
-	ParamSetItem<T>::ParamSetItem(const std::string& name, const T* v, int nValues)
-		: name(name), values(new T[nValues]), nValues(nValues)
-	{
-		std::copy(v, v + nValues, values.get());
-	}
+#define ADD_PARAM_TYPE(T, vec) \
+    (vec).emplace_back(new ParamSetItem<T>(name, std::move(values), nValues));
+
 
 	bool ParamSet::FindOneBool(const std::string& name, bool d) const
 	{
@@ -91,6 +88,23 @@ namespace pbrt
     void ParamSet::ReportUnused() const
     {
         // TODO implement
+    }
+
+    void ParamSet::AddInt(const std::string &name, std::unique_ptr<int[]> values, int nValues)
+    {
+        EraseInt(name);
+        ADD_PARAM_TYPE(int, ints);
+    }
+
+    bool ParamSet::EraseInt(const std::string & n)
+    {
+        for (size_t i = 0; i < ints.size(); ++i)
+            if (ints[i]->name == n)
+            {
+                ints.erase(ints.begin() + i);
+                return true;
+            }
+        return false;
     }
 
     std::shared_ptr<Texture<Spectrum>> TextureParams::GetSpectrumTexture(const std::string& n, const Spectrum& d) const

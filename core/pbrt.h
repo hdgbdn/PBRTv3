@@ -127,6 +127,7 @@ namespace pbrt
 
 	// API
 	class ParamSet;
+    class TextureParams;
 
 	// Global constants
 

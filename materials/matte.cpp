@@ -1,6 +1,7 @@
 #include "matte.h"
 #include "memory.h"
 #include "reflection.h"
+#include "paramset.h"
 #include "texture.h"
 #include "interaction.h"
 
@@ -21,5 +22,13 @@ namespace pbrt
 				si->bsdf->Add(ARENA_ALLOC(arena, OrenNayar)(r, sig));
 		}
 	}
+
+    MatteMaterial* CreateMatteMaterial(const TextureParams &mp)
+    {
+        std::shared_ptr<Texture<Spectrum>> Kd = mp.GetSpectrumTexture("Kd", Spectrum(0.5f));
+        std::shared_ptr<Texture<float>> sigma = mp.GetFloatTexture("sigma", 0.f);
+        std::shared_ptr<Texture<float>> bumpMap = mp.GetFloatTextureOrNull("bumpmap");
+        return new MatteMaterial(Kd, sigma, bumpMap);
+    }
 
 }

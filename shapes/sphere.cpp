@@ -1,6 +1,7 @@
 #include "sphere.h"
 #include "efloat.h"
 #include "sampling.h"
+#include "paramset.h"
 
 namespace pbrt
 {
@@ -195,4 +196,14 @@ namespace pbrt
 	}
 
 
+    std::shared_ptr<Shape>
+    CreateSphereShape(const Transform *o2w, const Transform *w2o, bool reverseOrientation, const ParamSet &params)
+    {
+        float radius = params.FindOneFloat("radius", 1.f);
+        float zmin = params.FindOneFloat("zmin", -radius);
+        float zmax = params.FindOneFloat("zmax", radius);
+        float phimax = params.FindOneFloat("phimax", 360.f);
+        return std::make_shared<Sphere>(std::make_shared<Transform>(*o2w), std::make_shared<Transform>(*w2o), reverseOrientation, radius, zmin,
+                                        zmax, phimax);
+    }
 }

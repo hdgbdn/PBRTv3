@@ -22,6 +22,11 @@ namespace pbrt
 		const float zMin, zMax;
 		const float thetaMin, thetaMax, phiMax;
 	};
+
+    std::shared_ptr<Shape> CreateSphereShape(const Transform *o2w,
+                                             const Transform *w2o,
+                                             bool reverseOrientation,
+                                             const ParamSet &params);
 }
 
 #endif

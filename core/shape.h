@@ -9,8 +9,8 @@ namespace pbrt
 	class Shape
 	{
 	public:
-		Shape(const std::shared_ptr<Transform>& ObjectToWorld,
-			const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation);
+		Shape(std::shared_ptr<Transform> ObjectToWorld,
+			std::shared_ptr<Transform> WorldToObject, bool reverseOrientation);
 		virtual ~Shape() = default;
 		virtual Bounds3f ObjectBound() const = 0;
 		virtual Bounds3f WorldBound() const;

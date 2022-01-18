@@ -1,10 +1,12 @@
 #include "pbrt.h"
 #include "shape.h"
 
+#include <utility>
+
 namespace pbrt
 {
-	Shape::Shape(const std::shared_ptr<Transform>& ObjectToWorld, const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation)
-	: ObjectToWorld(ObjectToWorld), WorldToObject(WorldToObject),
+	Shape::Shape(std::shared_ptr<Transform> ObjectToWorld, std::shared_ptr<Transform> WorldToObject, bool reverseOrientation)
+	: ObjectToWorld(std::move(ObjectToWorld)), WorldToObject(std::move(WorldToObject)),
 		reverseOrientation(reverseOrientation),
 		transformSwapsHandedness(ObjectToWorld->SwapsHandedness()) {}
 

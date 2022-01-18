@@ -3,6 +3,7 @@
 #include "interaction.h"
 #include "microfacet.h"
 #include "texture.h"
+#include "paramset.h"
 
 namespace pbrt
 {
@@ -29,4 +30,13 @@ namespace pbrt
 		}
 	}
 
+    PlasticMaterial *CreatePlasticMaterial(const TextureParams &mp)
+    {
+        auto Kd = mp.GetSpectrumTexture("Kd", Spectrum(0.25f));
+        auto Ks = mp.GetSpectrumTexture("Ks", Spectrum(0.25f));
+        auto roughness = mp.GetFloatTexture("roughness", .1f);
+        auto bumpMap = mp.GetFloatTextureOrNull("bumpmap");
+        bool remapRoughness = mp.FindBool("remapRoughness", true);
+        return new PlasticMaterial(Kd, Ks, roughness, bumpMap, remapRoughness);
+    }
 }

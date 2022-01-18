@@ -7,10 +7,10 @@ namespace pbrt
 {
 	struct TriangleMesh
 	{
-		TriangleMesh(const Transform& ObjectToWorld, int nTriangles,
-			const int* vertexIndices, int nVertices, const Point3f* P,
-			const Vector3f* S, const Normal3f* N, const Point2f* UV,
-			const std::shared_ptr<Texture<float>>& alphaMask);
+		TriangleMesh(const Transform *ObjectToWorld, int nTriangles,
+                     const int* vertexIndices, int nVertices, const Point3f* P,
+                     const Vector3f* S, const Normal3f* N, const Point2f* UV,
+                     const std::shared_ptr<Texture<float>>& alphaMask);
 		const int nTriangles, nVertices;
 		std::vector<int> vertexIndices;
 		std::unique_ptr<Point3f[]> p;
@@ -23,9 +23,9 @@ namespace pbrt
 	class Triangle : public Shape
 	{
 	public:
-		Triangle(const std::shared_ptr<Transform>& ObjectToWorld,
-			const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation,
-			const std::shared_ptr<TriangleMesh>& mesh, int triNumber);
+		Triangle(const Transform *ObjectToWorld,
+                 const Transform *WorldToObject, bool reverseOrientation,
+                 const std::shared_ptr<TriangleMesh>& mesh, int triNumber);
 		Bounds3f ObjectBound() const override;
 		Bounds3f WorldBound() const override;
 		bool Intersect(const Ray& ray, float* tHit, SurfaceInteraction* isect, bool testAlphaTexture) const override;

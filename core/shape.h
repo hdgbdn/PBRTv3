@@ -9,8 +9,8 @@ namespace pbrt
 	class Shape
 	{
 	public:
-		Shape(std::shared_ptr<Transform> ObjectToWorld,
-			std::shared_ptr<Transform> WorldToObject, bool reverseOrientation);
+		Shape(const Transform* ObjectToWorld,
+              const Transform* WorldToObject, bool reverseOrientation);
 		virtual ~Shape() = default;
 		virtual Bounds3f ObjectBound() const = 0;
 		virtual Bounds3f WorldBound() const;
@@ -23,8 +23,8 @@ namespace pbrt
 		virtual Interaction Sample(const Interaction& ref, const Point2f& u) const { return Sample(u); }
 		virtual float Pdf(const Interaction&) const { return 1 / Area(); }
 		virtual float Pdf(const Interaction& ref, const Vector3f& wi) const;
-		const std::shared_ptr<Transform> ObjectToWorld;
-		const std::shared_ptr<Transform> WorldToObject;
+		const Transform* ObjectToWorld;
+		const Transform* WorldToObject;
 		const bool reverseOrientation;
 		const bool transformSwapsHandedness;
 	};

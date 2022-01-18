@@ -5,8 +5,8 @@
 
 namespace pbrt
 {
-	Shape::Shape(std::shared_ptr<Transform> ObjectToWorld, std::shared_ptr<Transform> WorldToObject, bool reverseOrientation)
-	: ObjectToWorld(std::move(ObjectToWorld)), WorldToObject(std::move(WorldToObject)),
+	Shape::Shape(const Transform* ObjectToWorld, const Transform* WorldToObject, bool reverseOrientation)
+	: ObjectToWorld(ObjectToWorld), WorldToObject(WorldToObject),
 		reverseOrientation(reverseOrientation),
 		transformSwapsHandedness(ObjectToWorld->SwapsHandedness()) {}
 

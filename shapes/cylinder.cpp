@@ -3,7 +3,7 @@
 
 namespace pbrt
 {
-	Cylinder::Cylinder(const std::shared_ptr<Transform>& ObjectToWorld, const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation, float radius, float zMin, float zMax, float phiMax)
+	Cylinder::Cylinder(const Transform *ObjectToWorld, const Transform *WorldToObject, bool reverseOrientation, float radius, float zMin, float zMax, float phiMax)
 		: Shape(ObjectToWorld, WorldToObject, reverseOrientation),
 		radius(radius), zMin(std::min(zMin, zMax)),
 		zMax(std::max(zMin, zMax)),

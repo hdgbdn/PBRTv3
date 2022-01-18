@@ -4,13 +4,13 @@
 
 namespace pbrt
 {
-	TriangleMesh::TriangleMesh(const Transform& ObjectToWorld, int nTriangles, const int* vertexIndices, int nVertices, const Point3f* P, const Vector3f* S, const Normal3f* N, const Point2f* UV, const std::shared_ptr<Texture<float>>& alphaMask)
+	TriangleMesh::TriangleMesh(const Transform *ObjectToWorld, int nTriangles, const int* vertexIndices, int nVertices, const Point3f* P, const Vector3f* S, const Normal3f* N, const Point2f* UV, const std::shared_ptr<Texture<float>>& alphaMask)
 		: nTriangles(nTriangles), nVertices(nVertices),
 		vertexIndices(vertexIndices, vertexIndices + 3 * nTriangles), alphaMask(alphaMask)
 	{
 		p.reset(new Point3f[nVertices]);
 		for (int i = 0; i < nVertices; i++)
-			p[i] = ObjectToWorld(P[i]);
+			p[i] = (*ObjectToWorld)(P[i]);
 
         if (UV) {
             uv.reset(new Point2f[nVertices]);
@@ -18,25 +18,25 @@ namespace pbrt
         }
         if (N) {
             n.reset(new Normal3f[nVertices]);
-            for (int i = 0; i < nVertices; ++i) n[i] = ObjectToWorld(N[i]);
+            for (int i = 0; i < nVertices; ++i) n[i] = (*ObjectToWorld)(N[i]);
         }
         if (S) {
             s.reset(new Vector3f[nVertices]);
-            for (int i = 0; i < nVertices; ++i) s[i] = ObjectToWorld(S[i]);
+            for (int i = 0; i < nVertices; ++i) s[i] = (*ObjectToWorld)(S[i]);
         }
 	}
 
-    Triangle::Triangle(const std::shared_ptr<Transform>& ObjectToWorld, const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation, const std::shared_ptr<TriangleMesh>& mesh, int triNumber)
+    Triangle::Triangle(const Transform *ObjectToWorld, const Transform *WorldToObject, bool reverseOrientation, const std::shared_ptr<TriangleMesh>& mesh, int triNumber)
 	    : Shape(ObjectToWorld, WorldToObject, reverseOrientation),
     mesh(mesh)
 	{
         v = &mesh->vertexIndices[3 * triNumber];
     }
 
-    std::vector<std::shared_ptr<Shape>> CreateTriangleMesh(const std::shared_ptr<Transform>& o2w, const std::shared_ptr<Transform>& w2o, bool reverseOrientation, int nTriangles, const int* vertexIndices, int nVertices, const Point3f* p, const Vector3f* s, const Normal3f* n, const Point2f* uv, const std::shared_ptr<Texture<float>>& alphaTexture, const std::shared_ptr<Texture<float>>& shadowAlphaTexture, const int* faceIndices)
+    std::vector<std::shared_ptr<Shape>> CreateTriangleMesh(Transform* o2w, Transform* w2o, bool reverseOrientation, int nTriangles, const int* vertexIndices, int nVertices, const Point3f* p, const Vector3f* s, const Normal3f* n, const Point2f* uv, const std::shared_ptr<Texture<float>>& alphaTexture, const std::shared_ptr<Texture<float>>& shadowAlphaTexture, const int* faceIndices)
     {
         std::shared_ptr<TriangleMesh> mesh =
-            std::make_shared<TriangleMesh>(*o2w, nTriangles, vertexIndices,
+            std::make_shared<TriangleMesh>(o2w, nTriangles, vertexIndices,
                 nVertices, p, s, n, uv, alphaTexture);
         std::vector<std::shared_ptr<Shape>> tris;
         for (int i = 0; i < nTriangles; ++i)

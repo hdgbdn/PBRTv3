@@ -1,11 +1,13 @@
 #include "sphere.h"
+
+#include <utility>
 #include "efloat.h"
 #include "sampling.h"
 #include "paramset.h"
 
 namespace pbrt
 {
-	Sphere::Sphere(const std::shared_ptr<Transform>& ObjectToWorld, const std::shared_ptr<Transform>& WorldToObject, bool reverseOrientation, float radius, float zMin, float zMax, float phiMax)
+	Sphere::Sphere(const Transform* ObjectToWorld, const Transform* WorldToObject, bool reverseOrientation, float radius, float zMin, float zMax, float phiMax)
 		: Shape(ObjectToWorld, WorldToObject, reverseOrientation),
 		radius(radius), zMin(Clamp(std::min(zMin, zMax), -radius, radius)),
 		zMax(Clamp(std::max(zMin, zMax), -radius, radius)),
@@ -203,7 +205,7 @@ namespace pbrt
         float zmin = params.FindOneFloat("zmin", -radius);
         float zmax = params.FindOneFloat("zmax", radius);
         float phimax = params.FindOneFloat("phimax", 360.f);
-        return std::make_shared<Sphere>(std::make_shared<Transform>(*o2w), std::make_shared<Transform>(*w2o), reverseOrientation, radius, zmin,
+        return std::make_shared<Sphere>(o2w, w2o, reverseOrientation, radius, zmin,
                                         zmax, phimax);
     }
 }

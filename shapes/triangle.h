@@ -7,17 +7,20 @@ namespace pbrt
 {
 	struct TriangleMesh
 	{
-		TriangleMesh(const Transform *ObjectToWorld, int nTriangles,
+		TriangleMesh(const Transform &ObjectToWorld, int nTriangles,
                      const int* vertexIndices, int nVertices, const Point3f* P,
                      const Vector3f* S, const Normal3f* N, const Point2f* UV,
-                     const std::shared_ptr<Texture<float>>& alphaMask);
+                     std::shared_ptr<Texture<float>>  alphaMask,
+                     std::shared_ptr<Texture<float>>  shadowAlphaMask,
+                     const int *fIndices);
 		const int nTriangles, nVertices;
 		std::vector<int> vertexIndices;
 		std::unique_ptr<Point3f[]> p;
 		std::unique_ptr<Normal3f[]> n;
 		std::unique_ptr<Vector3f[]> s;
 		std::unique_ptr<Point2f[]> uv;
-		std::shared_ptr<Texture<float>> alphaMask;
+		std::shared_ptr<Texture<float>> alphaMask, shadowAlphaMask;
+        std::vector<int> faceIndices;
 	};
 
 	class Triangle : public Shape
@@ -51,6 +54,11 @@ namespace pbrt
 		std::shared_ptr<TriangleMesh> mesh;
 		const int* v;
 	};
+
+    std::vector<std::shared_ptr<Shape>> CreateTriangleMeshShape(
+            const Transform *o2w, const Transform *w2o, bool reverseOrientation,
+            const ParamSet &params,
+            std::map<std::string, std::shared_ptr<Texture<float>>> *floatTextures);
 
 	std::vector<std::shared_ptr<Shape>> CreateTriangleMesh(
 		const Transform* o2w, const Transform* w2o, bool reverseOrientation,

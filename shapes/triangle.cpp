@@ -1,16 +1,26 @@
 #include "triangle.h"
+
+#include <utility>
 #include "texture.h"
 #include "sampling.h"
+#include "paramset.h"
+#include "constant.h"
 
 namespace pbrt
 {
-	TriangleMesh::TriangleMesh(const Transform *ObjectToWorld, int nTriangles, const int* vertexIndices, int nVertices, const Point3f* P, const Vector3f* S, const Normal3f* N, const Point2f* UV, const std::shared_ptr<Texture<float>>& alphaMask)
+	TriangleMesh::TriangleMesh(const Transform &ObjectToWorld, int nTriangles,
+                               const int* vertexIndices, int nVertices, const Point3f* P,
+                               const Vector3f* S, const Normal3f* N, const Point2f* UV,
+                               std::shared_ptr<Texture<float>>  alphaMask,
+                               std::shared_ptr<Texture<float>>  shadowAlphaMask,
+                               const int *fIndices)
 		: nTriangles(nTriangles), nVertices(nVertices),
-		vertexIndices(vertexIndices, vertexIndices + 3 * nTriangles), alphaMask(alphaMask)
+		vertexIndices(vertexIndices, vertexIndices + 3 * nTriangles), alphaMask(std::move(alphaMask)),
+        shadowAlphaMask(std::move(shadowAlphaMask))
 	{
 		p.reset(new Point3f[nVertices]);
 		for (int i = 0; i < nVertices; i++)
-			p[i] = (*ObjectToWorld)(P[i]);
+			p[i] = (ObjectToWorld)(P[i]);
 
         if (UV) {
             uv.reset(new Point2f[nVertices]);
@@ -18,12 +28,15 @@ namespace pbrt
         }
         if (N) {
             n.reset(new Normal3f[nVertices]);
-            for (int i = 0; i < nVertices; ++i) n[i] = (*ObjectToWorld)(N[i]);
+            for (int i = 0; i < nVertices; ++i) n[i] = (ObjectToWorld)(N[i]);
         }
         if (S) {
             s.reset(new Vector3f[nVertices]);
-            for (int i = 0; i < nVertices; ++i) s[i] = (*ObjectToWorld)(S[i]);
+            for (int i = 0; i < nVertices; ++i) s[i] = (ObjectToWorld)(S[i]);
         }
+
+        if (fIndices)
+            faceIndices = std::vector<int>(fIndices, fIndices + nTriangles);
 	}
 
     Triangle::Triangle(const Transform *ObjectToWorld, const Transform *WorldToObject, bool reverseOrientation, const std::shared_ptr<TriangleMesh>& mesh, int triNumber)
@@ -31,18 +44,6 @@ namespace pbrt
     mesh(mesh)
 	{
         v = &mesh->vertexIndices[3 * triNumber];
-    }
-
-    std::vector<std::shared_ptr<Shape>> CreateTriangleMesh(Transform* o2w, Transform* w2o, bool reverseOrientation, int nTriangles, const int* vertexIndices, int nVertices, const Point3f* p, const Vector3f* s, const Normal3f* n, const Point2f* uv, const std::shared_ptr<Texture<float>>& alphaTexture, const std::shared_ptr<Texture<float>>& shadowAlphaTexture, const int* faceIndices)
-    {
-        std::shared_ptr<TriangleMesh> mesh =
-            std::make_shared<TriangleMesh>(o2w, nTriangles, vertexIndices,
-                nVertices, p, s, n, uv, alphaTexture);
-        std::vector<std::shared_ptr<Shape>> tris;
-        for (int i = 0; i < nTriangles; ++i)
-            tris.push_back(std::make_shared<Triangle>(o2w, w2o, reverseOrientation,
-                mesh, i));
-        return tris;
     }
 
     Bounds3f Triangle::ObjectBound() const
@@ -204,5 +205,131 @@ namespace pbrt
         return Shape::IntersectP(ray, testAlphaTexture);
     }
 
+    std::vector<std::shared_ptr<Shape>> CreateTriangleMesh(
+            const Transform* o2w, const Transform* w2o, bool reverseOrientation,
+            int nTriangles, const int* vertexIndices, int nVertices, const Point3f* p,
+            const Vector3f* s, const Normal3f* n, const Point2f* uv,
+            const std::shared_ptr<Texture<float>>& alphaTexture,
+            const std::shared_ptr<Texture<float>>& shadowAlphaTexture,
+            const int* faceIndices)
+    {
+        std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>(
+                *o2w, nTriangles, vertexIndices, nVertices, p, s, n, uv,
+                alphaTexture, shadowAlphaTexture, faceIndices);
+        std::vector<std::shared_ptr<Shape>> tris;
+        tris.reserve(nTriangles);
+        for (int i = 0; i < nTriangles; ++i)
+            tris.emplace_back(std::make_shared<Triangle>(o2w, w2o,
+                                                         reverseOrientation, mesh, i));
+        return tris;
+    }
 
+    std::vector<std::shared_ptr<Shape>> CreateTriangleMeshShape(
+            const Transform *o2w, const Transform *w2o, bool reverseOrientation,
+            const ParamSet &params,
+            std::map<std::string, std::shared_ptr<Texture<float>>> *floatTextures)
+    {
+        int nvi, npi, nuvi, nsi, nni;
+        const int* vi = params.FindInt("indices", &nvi);
+        const Point3f* P = params.FindPoint3f("P", &npi);
+        const Point2f* uvs = params.FindPoint2f("uv", &nuvi);
+        if (!uvs) uvs = params.FindPoint2f("st", &nuvi);
+        std::unique_ptr<Point2f[]> tempUVs;
+        if (!uvs)
+        {
+            const float* fuv = params.FindFloat("uv", &nuvi);
+            if (!fuv) fuv = params.FindFloat("st", &nuvi);
+            if (fuv) {
+                nuvi /= 2;
+                tempUVs = std::make_unique<Point2f[]>(nuvi);
+                for (int i = 0; i < nuvi; ++i)
+                    tempUVs[i] = Point2f(fuv[2 * i], fuv[2 * i + 1]);
+                uvs = tempUVs.get();
+            }
+        }
+
+        if (uvs)
+        {
+            if (nuvi < npi) {
+                Error(
+                        "Not enough of \"uv\"s for triangle mesh.  Expected %d, "
+                        "found %d.  Discarding.",
+                        npi, nuvi);
+                uvs = nullptr;
+            } else if (nuvi > npi)
+                Warning(
+                        "More \"uv\"s provided than will be used for triangle "
+                        "mesh.  (%d expcted, %d found)",
+                        npi, nuvi);
+        }
+
+        if (!vi) {
+            Error(
+                    "Vertex indices \"indices\" not provided with triangle mesh shape");
+            return {};
+        }
+        if (!P) {
+            Error("Vertex positions \"P\" not provided with triangle mesh shape");
+            return {};
+        }
+
+        const Vector3f *S = params.FindVector3f("S", &nsi);
+        if (S && nsi != npi) {
+            Error("Number of \"S\"s for triangle mesh must match \"P\"s");
+            S = nullptr;
+        }
+        const Normal3f *N = params.FindNormal3f("N", &nni);
+        if (N && nni != npi) {
+            Error("Number of \"N\"s for triangle mesh must match \"P\"s");
+            N = nullptr;
+        }
+        for (int i = 0; i < nvi; ++i)
+            if (vi[i] >= npi)
+            {
+                Error(
+                        "trianglemesh has out of-bounds vertex index %d (%d \"P\" "
+                        "values were given",
+                        vi[i], npi);
+                return {};
+            }
+
+        int nfi;
+        const int *faceIndices = params.FindInt("faceIndices", &nfi);
+        if (faceIndices && nfi != nvi / 3)
+        {
+            Error("Number of face indices, %d, doesn't match number of faces, %d",
+                  nfi, nvi / 3);
+            faceIndices = nullptr;
+        }
+
+        std::shared_ptr<Texture<float>> alphaTex;
+        std::string alphaTexName = params.FindTexture("alpha");
+        if (!alphaTexName.empty())
+        {
+            if (floatTextures->find(alphaTexName) != floatTextures->end())
+                alphaTex = (*floatTextures)[alphaTexName];
+            else
+                Error("Couldn't find float texture \"%s\" for \"alpha\" parameter",
+                      alphaTexName.c_str());
+        }
+        else if (params.FindOneFloat("alpha", 1.f) == 0.f)
+            alphaTex.reset(new ConstantTexture<float>(0.f));
+
+        std::shared_ptr<Texture<float>> shadowAlphaTex;
+        std::string shadowAlphaTexName = params.FindTexture("shadowalpha");
+        if (!alphaTexName.empty())
+        {
+            if (floatTextures->find(shadowAlphaTexName) != floatTextures->end())
+                shadowAlphaTex = (*floatTextures)[shadowAlphaTexName];
+            else
+                Error(
+                        "Couldn't find float texture \"%s\" for \"shadowalpha\" "
+                        "parameter",
+                        shadowAlphaTexName.c_str());
+        } else if (params.FindOneFloat("shadowalpha", 1.f) == 0.f)
+            shadowAlphaTex.reset(new ConstantTexture<float>(0.f));
+
+        return CreateTriangleMesh(o2w, w2o, reverseOrientation, nvi / 3, vi, npi, P,
+                                  S, N, uvs, alphaTex, shadowAlphaTex, faceIndices);
+    }
 }

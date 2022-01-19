@@ -3,6 +3,7 @@
 
 #include "pbrt.h"
 #include "geometry.h"
+#include "spectrum.h"
 
 #include <map>
 #include <memory>
@@ -67,15 +68,18 @@ namespace pbrt
         bool EraseString(const std::string &);
         bool EraseTexture(const std::string &);
 
-		bool FindOneBool(const std::string& name, bool d) const;
-		int FindOneInt(const std::string& name, int d) const;
-		float FindOneFloat(const std::string& name, float d) const;
-		Point2f FindOnePoint2f(const std::string& name, const Point2f& d) const;
-		Vector2f FindOneVector2f(const std::string& name, const Vector2f& d) const;
-		Point3f FindOnePoint3f(const std::string& name, const Point3f& d) const;
-		Normal3f FindOneNormal3f(const std::string& name, const Normal3f& d) const;
-		std::string FindOneString(const std::string& name, const std::string& d) const;
-		Spectrum FindOneSpectrum(const std::string& name, const Spectrum& d) const;
+        float FindOneFloat(const std::string &, float d) const;
+        int FindOneInt(const std::string &, int d) const;
+        bool FindOneBool(const std::string &, bool d) const;
+        Point2f FindOnePoint2f(const std::string &, const Point2f &d) const;
+        Vector2f FindOneVector2f(const std::string &, const Vector2f &d) const;
+        Point3f FindOnePoint3f(const std::string &, const Point3f &d) const;
+        Vector3f FindOneVector3f(const std::string &, const Vector3f &d) const;
+        Normal3f FindOneNormal3f(const std::string &, const Normal3f &d) const;
+        Spectrum FindOneSpectrum(const std::string &, const Spectrum &d) const;
+        std::string FindOneString(const std::string &, const std::string &d) const;
+        std::string FindOneFilename(const std::string &,
+                                    const std::string &d) const;
 
 		std::string FindTexture(const std::string&) const;
         const float *FindFloat(const std::string &, int *n) const;
@@ -119,7 +123,44 @@ namespace pbrt
 			spectrumTextures(spectrumTextures)
 		{
 		}
-		std::shared_ptr<Texture<Spectrum>> GetSpectrumTexture(const std::string& n, const Spectrum& d) const;
+        float FindFloat(const std::string &n, float d) const {
+            return geoParams.FindOneFloat(n, materialParams.FindOneFloat(n, d));
+        }
+        std::string FindString(const std::string &n,
+                               const std::string &d = "") const {
+            return geoParams.FindOneString(n, materialParams.FindOneString(n, d));
+        }
+        std::string FindFilename(const std::string &n,
+                                 const std::string &d = "") const {
+            return geoParams.FindOneFilename(n,
+                                              materialParams.FindOneFilename(n, d));
+        }
+        int FindInt(const std::string &n, int d) const {
+            return geoParams.FindOneInt(n, materialParams.FindOneInt(n, d));
+        }
+        bool FindBool(const std::string &n, bool d) const {
+            return geoParams.FindOneBool(n, materialParams.FindOneBool(n, d));
+        }
+        Point3f FindPoint3f(const std::string &n, const Point3f &d) const {
+            return geoParams.FindOnePoint3f(n,
+                                             materialParams.FindOnePoint3f(n, d));
+        }
+        Vector3f FindVector3f(const std::string &n, const Vector3f &d) const {
+            return geoParams.FindOneVector3f(n,
+                                              materialParams.FindOneVector3f(n, d));
+        }
+        Normal3f FindNormal3f(const std::string &n, const Normal3f &d) const {
+            return geoParams.FindOneNormal3f(n,
+                                              materialParams.FindOneNormal3f(n, d));
+        }
+        Spectrum FindSpectrum(const std::string &n, const Spectrum &d) const {
+            return geoParams.FindOneSpectrum(n,  materialParams.FindOneSpectrum(n, d));
+        }
+        std::shared_ptr<Texture<Spectrum>> GetSpectrumTexture(const std::string& name, const Spectrum& def) const;
+        std::shared_ptr<Texture<Spectrum>> GetSpectrumTextureOrNull(const std::string &name) const;
+		std::shared_ptr<Texture<float>> GetFloatTexture(const std::string& name, float def) const;
+        std::shared_ptr<Texture<float>> GetFloatTextureOrNull(const std::string &name) const;
+        void ReportUnused() const;
 	private:
 		std::map<std::string, std::shared_ptr<Texture<float>>>& floatTextures;
 		std::map<std::string, std::shared_ptr<Texture<Spectrum>>>& spectrumTextures;

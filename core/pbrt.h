@@ -6,6 +6,7 @@
 #include <string>
 #include <limits>
 #include <vector>
+#include <map>
 #include <memory>
 #include <algorithm>
 #include <mutex>

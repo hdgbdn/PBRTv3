@@ -26,47 +26,42 @@ namespace pbrt
 
 	bool ParamSet::FindOneBool(const std::string& name, bool d) const
 	{
-		for (const auto& b : bools)
-			if (b->name == name && b->nValues == 1) {
-				b->lookedUp = true;
-				return b->values[0];
-			}
-		return d;
+        LOOKUP_ONE(bools);
 	}
 
     int ParamSet::FindOneInt(const std::string &name, int d) const
     {
-        return 0;
+        LOOKUP_ONE(ints);
     }
 
 	float ParamSet::FindOneFloat(const std::string& name, float d) const
 	{
-		for(const auto& f : floats)
-			if (f->name == name && f->nValues == 1) {
-				f->lookedUp = true;
-				return f->values[0];
-			}
-		return d;
+        LOOKUP_ONE(floats);
 	}
 
     Point2f ParamSet::FindOnePoint2f(const std::string &name, const Point2f &d) const
     {
-        return pbrt::Point2f();
+        LOOKUP_ONE(point2fs);
     }
 
     Vector2f ParamSet::FindOneVector2f(const std::string &name, const Vector2f &d) const
     {
-        return pbrt::Vector2f();
+        LOOKUP_ONE(vector2fs);
     }
 
     Point3f ParamSet::FindOnePoint3f(const std::string &name, const Point3f &d) const
     {
-        return pbrt::Point3f();
+        LOOKUP_ONE(point3fs);
+    }
+
+    Vector3f ParamSet::FindOneVector3f(const std::string &name, const Vector3f &d) const
+    {
+        LOOKUP_ONE(vector3fs);
     }
 
     Normal3f ParamSet::FindOneNormal3f(const std::string &name, const Normal3f &d) const
     {
-        return pbrt::Normal3f();
+        LOOKUP_ONE(normal3fs);
     }
 
     Spectrum ParamSet::FindOneSpectrum(const std::string &name, const Spectrum &d) const
@@ -108,16 +103,39 @@ namespace pbrt
         LOOKUP_ONE(textures);
     }
 
-    const float *ParamSet::FindFloat(const std::string & name, int *n) const
+    const float *ParamSet::FindFloat(const std::string & name, int *nValues) const
     {
-        for (const auto& f : floats)
-            if (f->name == name)
-            {
-                *n = f->nValues;
-                f->lookedUp = true;
-                return f->values.get();
-            }
-        return nullptr;
+        LOOKUP_PTR(floats);
+    }
+
+    const int *ParamSet::FindInt(const std::string& name, int *nValues) const
+    {
+        LOOKUP_PTR(ints);
+    }
+
+    const Point2f *ParamSet::FindPoint2f(const std::string& name, int *nValues) const
+    {
+        LOOKUP_PTR(point2fs);
+    }
+
+    const Point3f *ParamSet::FindPoint3f(const std::string& name, int *nValues) const
+    {
+        LOOKUP_PTR(point3fs);
+    }
+
+    const Vector2f* ParamSet::FindVector2f(const std::string &name, int *nValues) const
+    {
+        LOOKUP_PTR(vector2fs);
+    }
+
+    const Vector3f *ParamSet::FindVector3f(const std::string &name, int *nValues) const
+    {
+        LOOKUP_PTR(vector3fs);
+    }
+
+    const Normal3f *ParamSet::FindNormal3f(const std::string &name, int *nValues) const
+    {
+        LOOKUP_PTR(normal3fs);
     }
 
     const Spectrum *ParamSet::FindSpectrum(const std::string& name, int *nValues) const
@@ -161,6 +179,25 @@ namespace pbrt
                 floats.erase(floats.begin() + i);
                 return true;
             }
+        return false;
+    }
+
+    void ParamSet::AddPoint3f(const std::string& name, std::unique_ptr<Point3f[]> values, int nValues)
+    {
+        ErasePoint3f(name);
+        ADD_PARAM_TYPE(Point3f, point3fs);
+    }
+
+    bool ParamSet::ErasePoint3f(const std::string &name)
+    {
+        for (size_t i = 0; i < point3fs.size(); ++i)
+        {
+            if (point3fs[i]->name == name)
+            {
+                point3fs.erase(point3fs.begin() + i);
+                return true;
+            }
+        }
         return false;
     }
 

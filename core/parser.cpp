@@ -403,6 +403,22 @@ namespace pbrt
                     fdata[j] = static_cast<float>(item.doubleValues[j]);
                 ps.AddFloat(name, std::move(fdata), nItems);
             }
+            else if (type == PARAM_TYPE_POINT3)
+            {
+                if ((nItems % 3) != 0)
+                    Warning(
+                            "Excess values given with point3 parameter \"%s\". "
+                            "Ignoring last %d of them.",
+                            item.name.c_str(), nItems % 3);
+                int nAlloc = nItems;
+                std::unique_ptr<Point3f[]> pData(new Point3f[nItems / 3]);
+                for (int i = 0; i < nItems / 3; ++i) {
+                    pData[i].x = static_cast<float>(item.doubleValues[3 * i]);
+                    pData[i].y = static_cast<float>(item.doubleValues[3 * i + 1]);
+                    pData[i].z = static_cast<float>(item.doubleValues[3 * i + 2]);
+                }
+                ps.AddPoint3f(name, std::move(pData), nItems / 3);
+            }
             else if (type == PARAM_TYPE_STRING)
             {
                 std::unique_ptr<std::string[]> strings(new std::string[nItems]);

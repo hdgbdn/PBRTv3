@@ -6,6 +6,7 @@
 #include "paramset.h"
 #include <cstdio>
 #include <functional>
+#include "fileutil.h"
 
 namespace pbrt
 {
@@ -660,6 +661,23 @@ namespace pbrt
                         syntaxError(tok);
                     break;
                 case 'I':
+                    if (tok == "Integrator")
+                    {
+                        basicParamListEntrypoint(SpectrumType::Reflectance, pbrtIntegrator);
+                    }
+                    else if (tok == "Include")
+                    {
+                        std::string fileName = dequoteString(nextToken(TokenRequired)).toString();
+                        fileName = AbsolutePath(ResolveFilename(fileName));
+                        auto tokError = [](const char *msg) { Error("%s", msg); exit(1); };
+                        std::unique_ptr<Tokenizer> tinc = Tokenizer::CreateFromFile(fileName, tokError);
+                        if (nullptr != tinc)
+                        {
+                            fileStack.push_back(std::move(tinc));
+                            parserLoc = &fileStack.back()->loc;
+                        }
+                    }
+
                     break;
                 case 'L':
                     if (tok == "LightSource")

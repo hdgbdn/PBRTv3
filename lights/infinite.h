@@ -23,6 +23,8 @@ namespace pbrt
 		float worldRadius;
 		std::unique_ptr<Distribution2D> distribution;
 	};
+
+    std::shared_ptr<InfiniteAreaLight> CreateInfinitedLight(const Transform& light2world, const ParamSet& paramSet);
 }
 
 #endif

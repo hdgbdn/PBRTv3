@@ -1,5 +1,6 @@
 #include "infinite.h"
 #include "scene.h"
+#include "paramset.h"
 
 namespace pbrt
 {
@@ -82,4 +83,14 @@ namespace pbrt
 			SphericalTheta(w) * InvPi);
 		return Spectrum(Lmap->Lookup(st), SpectrumType::Illuminant);
 	}
+
+    std::shared_ptr<InfiniteAreaLight> CreateInfinitedLight(const Transform &light2world, const ParamSet &paramSet)
+    {
+        Spectrum L = paramSet.FindOneSpectrum("L", Spectrum(1.0f));
+        Spectrum sc = paramSet.FindOneSpectrum("scale", Spectrum(1.0f));
+        std::string texmap = paramSet.FindOneFilename("mapname", "");
+        int nSamples = paramSet.FindOneInt("samples", paramSet.FindOneInt("nsamples", 1));
+        return std::make_shared<InfiniteAreaLight>(light2world, L * sc, nSamples,
+                                                   texmap);
+    }
 }

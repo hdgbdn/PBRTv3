@@ -1,5 +1,5 @@
-#ifndef PBRT_SHAPE_SPHERE_H
-#define PBRT_SHAPE_SPHERE_H
+#ifndef PBRT_SHAPE_TRIANGLE_H
+#define PBRT_SHAPE_TRIANGLE_H
 
 #include "shape.h"
 

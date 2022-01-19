@@ -395,6 +395,37 @@ namespace pbrt
                     idata[j] = static_cast<int>(item.doubleValues[j]);
                 ps.AddInt(name, std::move(idata), nItems);
             }
+            else if (type == PARAM_TYPE_FLOAT)
+            {
+                int nAlloc = nItems;
+                std::unique_ptr<float []> fdata(new float[nAlloc]);
+                for (int j = 0; j < nAlloc; ++j)
+                    fdata[j] = static_cast<float>(item.doubleValues[j]);
+                ps.AddFloat(name, std::move(fdata), nItems);
+            }
+            else if (type == PARAM_TYPE_STRING)
+            {
+                std::unique_ptr<std::string[]> strings(new std::string[nItems]);
+                for(int j = 0; j < nItems; ++j)
+                    strings[j] = std::string(item.stringValues[j]);
+                ps.AddString(name, std::move(strings), nItems);
+            }
+            else if (type == PARAM_TYPE_RGB)
+            {
+                if ((nItems % 3) != 0)
+                {
+                    Warning(
+                            "Excess RGB values given with parameter \"%s\". "
+                            "Ignoring last %d of them",
+                            item.name.c_str(), nItems % 3);
+                    nItems -= nItems % 3;
+                }
+                std::unique_ptr<float[]> floats(new float[nItems]);
+                for(int j = 0; j < nItems; ++j) floats[j] = static_cast<float>(item.doubleValues[j]);
+                ps.AddRGBSpectrum(name, std::move(floats), nItems);
+            }
+            else
+                Warning("Type of parameter \"%s\" is unknown", item.name.c_str());
         }
     }
 
@@ -600,20 +631,50 @@ namespace pbrt
                         syntaxError(tok);
                     break;
                 case 'C':
+                    if (tok == "Camera")
+                        basicParamListEntrypoint(SpectrumType::Reflectance,
+                                                 pbrtCamera);
+                    else
+                    syntaxError(tok);
                     break;
                 case 'F':
+                    if (tok == "Film")
+                        basicParamListEntrypoint(SpectrumType::Reflectance, pbrtFilm);
+                    else
+                        syntaxError(tok);
                     break;
                 case 'I':
                     break;
                 case 'L':
+                    if (tok == "LightSource")
+                        basicParamListEntrypoint(SpectrumType::Illuminant,
+                                                 pbrtLightSource);
+                    else if (tok == "LookAt")
+                    {
+                        float v[9];
+                        for(int i = 0; i < 9; ++i)
+                            v[i] = parseNumber(nextToken(TokenRequired));
+                        pbrtLookAt(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7],
+                                   v[8]);
+                    }
+                    else
+                        syntaxError(tok);
                     break;
                 case 'M':
+                    if (tok == "Material")
+                        basicParamListEntrypoint(SpectrumType::Reflectance,
+                                                 pbrtMaterial);
                     break;
                 case 'N':
                     break;
                 case 'O':
                     break;
                 case 'P':
+                    if (tok == "PixelFilter")
+                        basicParamListEntrypoint(SpectrumType::Reflectance,
+                                                 pbrtPixelFilter);
+                    else
+                        syntaxError(tok);
                     break;
                 case 'R':
                     break;
@@ -633,8 +694,47 @@ namespace pbrt
                     break;
                     break;
                 case 'T':
+                    if (tok == "TransformBegin")
+                        pbrtTransformBegin();
+                    else if (tok == "TransformEnd")
+                        pbrtTransformEnd();
+                    else if (tok == "Transform")
+                    {
+                        if (nextToken(TokenRequired) != "[") syntaxError(tok);
+                        float m[16];
+                        for (int i = 0; i < 16; ++i)
+                            m[i] = parseNumber(nextToken(TokenRequired));
+                        if (nextToken(TokenRequired) != "]") syntaxError(tok);
+                        pbrtTransform(m);
+                    }
+                    else if (tok == "Translate")
+                    {
+                        float v[3];
+                        for (int i = 0; i < 3; ++i)
+                            v[i] = parseNumber(nextToken(TokenRequired));
+                        pbrtTranslate(v[0], v[1], v[2]);
+                    }
+                    else if (tok == "Texture")
+                    {
+                        string_view n = dequoteString(nextToken(TokenRequired));
+                        std::string name = n.toString();
+                        n = dequoteString(nextToken(TokenRequired));
+                        std::string type = n.toString();
+
+                        basicParamListEntrypoint(
+                                SpectrumType::Reflectance,
+                                [&](const std::string &texName, const ParamSet &params) {
+                                    pbrtTexture(name, type, texName, params);
+                                });
+                    }
                     break;
                 case 'W':
+                    if (tok == "WorldBegin")
+                        pbrtWorldBegin();
+                    else if (tok == "WorldEnd")
+                        pbrtWorldEnd();
+                    else
+                        syntaxError(tok);
                     break;
                 default:
                     syntaxError(tok);

@@ -26,6 +26,8 @@ namespace pbrt
 		int Levels() const { return pyramid.size(); }
 		const T& Texel(int level, int s, int t) const;
 		T Lookup(const Point2f& st, float width = 0.f) const;
+        T Lookup(const Point2f &st, Vector2f dstdx, Vector2f dstdy) const;
+        T EWA(int level, Point2f st, Vector2f dst0, Vector2f dst1) const;
 		T triangle(int level, const Point2f& st) const;
 	private:
 		const bool doTrilinear;
@@ -34,6 +36,9 @@ namespace pbrt
 		Point2i resolution;
 		std::vector<std::unique_ptr<BlockedArray<T>>> pyramid;
 		std::unique_ptr<ResampleWeight[]> resampleWeights(int oldRes, int newRes);
+
+        static constexpr int WeightLUTSize = 128;
+        static float weightLut[WeightLUTSize];
 	};
 
     template <typename T>
@@ -148,6 +153,88 @@ namespace pbrt
         }
     }
 
+
+    template<typename T>
+    T MIPMap<T>::Lookup(const Point2f &st, Vector2f dst0, Vector2f dst1) const
+    {
+        if (doTrilinear) {
+            float width = std::max(std::max(std::abs(dst0[0]), std::abs(dst0[1])),
+                                   std::max(std::abs(dst1[0]), std::abs(dst1[1])));
+            return Lookup(st, width);
+        }
+        //++nEWALookups;
+        //ProfilePhase p(Prof::TexFiltEWA);
+        // Compute ellipse minor and major axes
+        if (dst0.LengthSquared() < dst1.LengthSquared()) std::swap(dst0, dst1);
+        float majorLength = dst0.Length();
+        float minorLength = dst1.Length();
+
+        // Clamp ellipse eccentricity if too large
+        if (minorLength * maxAnisotropy < majorLength && minorLength > 0) {
+            float scale = majorLength / (minorLength * maxAnisotropy);
+            dst1 *= scale;
+            minorLength *= scale;
+        }
+        if (minorLength == 0) return triangle(0, st);
+
+        // Choose level of detail for EWA lookup and perform EWA filtering
+        float lod = std::max((float)0, Levels() - (float)1 + Log2(minorLength));
+        int ilod = std::floor(lod);
+        return Lerp(lod - ilod, EWA(ilod, st, dst0, dst1),
+                    EWA(ilod + 1, st, dst0, dst1));
+    }
+
+
+    template <typename T>
+    T MIPMap<T>::EWA(int level, Point2f st, Vector2f dst0, Vector2f dst1) const {
+        if (level >= Levels()) return Texel(Levels() - 1, 0, 0);
+        // Convert EWA coordinates to appropriate scale for level
+        st[0] = st[0] * pyramid[level]->uSize() - 0.5f;
+        st[1] = st[1] * pyramid[level]->vSize() - 0.5f;
+        dst0[0] *= pyramid[level]->uSize();
+        dst0[1] *= pyramid[level]->vSize();
+        dst1[0] *= pyramid[level]->uSize();
+        dst1[1] *= pyramid[level]->vSize();
+
+        // Compute ellipse coefficients to bound EWA filter region
+        float A = dst0[1] * dst0[1] + dst1[1] * dst1[1] + 1;
+        float B = -2 * (dst0[0] * dst0[1] + dst1[0] * dst1[1]);
+        float C = dst0[0] * dst0[0] + dst1[0] * dst1[0] + 1;
+        float invF = 1 / (A * C - B * B * 0.25f);
+        A *= invF;
+        B *= invF;
+        C *= invF;
+
+        // Compute the ellipse's $(s,t)$ bounding box in texture space
+        float det = -B * B + 4 * A * C;
+        float invDet = 1 / det;
+        float uSqrt = std::sqrt(det * C), vSqrt = std::sqrt(A * det);
+        int s0 = std::ceil(st[0] - 2 * invDet * uSqrt);
+        int s1 = std::floor(st[0] + 2 * invDet * uSqrt);
+        int t0 = std::ceil(st[1] - 2 * invDet * vSqrt);
+        int t1 = std::floor(st[1] + 2 * invDet * vSqrt);
+
+        // Scan over ellipse bound and compute quadratic equation
+        T sum(0.f);
+        float sumWts = 0;
+        for (int it = t0; it <= t1; ++it) {
+            float tt = it - st[1];
+            for (int is = s0; is <= s1; ++is) {
+                float ss = is - st[0];
+                // Compute squared radius and filter texel if inside ellipse
+                float r2 = A * ss * ss + B * ss * tt + C * tt * tt;
+                if (r2 < 1) {
+                    int index =
+                            std::min((int)(r2 * WeightLUTSize), WeightLUTSize - 1);
+                    float weight = weightLut[index];
+                    sum += Texel(level, is, it) * weight;
+                    sumWts += weight;
+                }
+            }
+        }
+        return sum / sumWts;
+    }
+
     template<typename T>
     T MIPMap<T>::triangle(int level, const Point2f& st) const
     {
@@ -185,6 +272,9 @@ namespace pbrt
         }
         return wt;
     }
+
+    template <typename T>
+    float MIPMap<T>::weightLut[WeightLUTSize];
 }
 
 #endif

@@ -24,6 +24,10 @@
 // light header
 #include "infinite.h"
 
+// image header
+#include "imagemap.h"
+#include "scale.h"
+
 namespace pbrt
 {
 	// API Global Variables
@@ -310,14 +314,28 @@ do { if (curTransform.IsAnimated())                                   \
         const Transform& tex2world,
         const TextureParams& tp)
     {
-        return {};
+        Texture<float>* tex = nullptr;
+        if (name == "imagemap")
+            tex = CreateImageFloatTexture(tex2world, tp);
+        else if(name == "scale")
+            tex = CreateScaleFloatTexture(tex2world, tp);
+        else
+            Warning("Spectrum texture \"%s\" unknown.", name.c_str());
+        tp.ReportUnused();
+        return std::shared_ptr<Texture<float>>(tex);
     }
 
     std::shared_ptr<Texture<Spectrum>> MakeSpectrumTexture(const std::string& name,
         const Transform& tex2world,
         const TextureParams& tp)
     {
-        return {};
+        Texture<Spectrum>* tex = nullptr;
+        if (name == "imagemap")
+            tex = CreateImageSpectrumTexture(tex2world, tp);
+        else
+            Warning("Spectrum texture \"%s\" unknown.", name.c_str());
+        tp.ReportUnused();
+        return std::shared_ptr<Texture<Spectrum>>(tex);
     }
 
     std::shared_ptr<Light> MakeLight(const std::string& name, const ParamSet& params, 
@@ -649,7 +667,7 @@ do { if (curTransform.IsAnimated())                                   \
             if (graphicsState.floatTextures->find(name) != graphicsState.floatTextures->end())
                 Info("Texture \"%s\" being redefined", name.c_str());
             WARN_IF_ANIMATED_TRANSFORM("Texture");
-            std::shared_ptr<Texture<float>> ft = MakeFloatTexture(name, curTransform[0], tp);
+            std::shared_ptr<Texture<float>> ft = MakeFloatTexture(texName, curTransform[0], tp);
             if (ft) (*graphicsState.floatTextures)[name] = ft;
         }
         else if (type == "color" || type == "spectrum")

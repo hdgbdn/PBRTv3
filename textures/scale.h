@@ -22,6 +22,11 @@ namespace pbrt
 		std::shared_ptr<Texture<T1>> tex1;
 		std::shared_ptr<Texture<T2>> tex2;
 	};
+
+    ScaleTexture<float, float> *CreateScaleFloatTexture(const Transform &tex2world,
+                                                        const TextureParams &tp);
+    ScaleTexture<Spectrum, Spectrum> *CreateScaleSpectrumTexture(
+            const Transform &tex2world, const TextureParams &tp);
 }
 
 #endif

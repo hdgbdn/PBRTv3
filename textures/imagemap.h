@@ -39,43 +39,13 @@ namespace pbrt
 	public:
 		ImageTexture(std::unique_ptr<TextureMapping2D> mapping,
 		             const std::string& filename, bool doTrilinear, float maxAniso,
-		             ImageWrap wrapMode, float scale, bool gamma)
-			: mapping(std::move(mapping)), mipmap(GetTexture(filename, doTrilinear, maxAniso,
-			                                                 wrapMode, scale, gamma)) { }
+		             ImageWrap wrapMode, float scale, bool gamma);
 
-		Treturn Evaluate(const SurfaceInteraction& si) const
-		{
-			Vector2f dstdx, dstdy;
-			Point2f st = mapping->Map(si, &dstdx, &dstdy);
-			Tmemory mem = mipmap->Lookup(st, dstdx, dstdy);
-			Treturn ret;
-			convertOut(mem, &ret);
-			return ret;
-		} 
+		Treturn Evaluate(const SurfaceInteraction& si) const;
 
 		static MIPMap<Tmemory>* GetTexture(const std::string& filename,
 		           bool doTrilinear, float maxAniso, ImageWrap wrap, float scale,
-		           bool gamma)
-		{
-			TexInfo texInfo(filename, doTrilinear, maxAniso, wrap, scale, gamma);
-			if (textures.find(texInfo) != textures.end()) return textures[texInfo].get();
-			Point2i resolution;
-			std::unique_ptr<RGBSpectrum[]> texels = ReadImage(filename, &resolution);
-			MIPMap<Tmemory>* mipmap = nullptr;
-			if(texels)
-			{
-				std::unique_ptr<Tmemory[]> convertedTexels(new Tmemory[resolution.x * resolution.y]);
-				for (int i = 0; i < resolution.x * resolution.y; ++i)
-					convertIn(texels[i], &convertedTexels[i], scale, gamma);
-				mipmap = new MIPMap<Tmemory>(resolution, convertedTexels.get(), doTrilinear, maxAniso, wrap);
-			}
-			else
-			{
-				Tmemory oneVal = scale;
-				mipmap = new MIPMap<Tmemory>(Point2i(1, 1), &oneVal);
-			}
-			textures.reset(mipmap);
-		}
+		           bool gamma);
 	private:
 		std::unique_ptr<TextureMapping2D> mapping;
 		MIPMap<Tmemory>* mipmap;
@@ -100,6 +70,16 @@ namespace pbrt
 			*to = from;
 		}
 	};
+
+    template <typename Tmemory, typename Treturn>
+    std::map<TexInfo, std::unique_ptr<MIPMap<Tmemory>>>
+            ImageTexture<Tmemory, Treturn>::textures;
+
+    ImageTexture<float, float> *CreateImageFloatTexture(const Transform &tex2world,
+                                                        const TextureParams &tp);
+
+    ImageTexture<RGBSpectrum, Spectrum> *CreateImageSpectrumTexture(
+            const Transform &tex2world, const TextureParams &tp);
 }
 
 #endif

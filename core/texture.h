@@ -8,7 +8,7 @@ namespace pbrt
     class TextureMapping2D
     {
     public:
-        ~TextureMapping2D();
+        ~TextureMapping2D() = default;
         virtual Point2f Map(const SurfaceInteraction& si, Vector2f* dstdx,
             Vector2f* dstdy) const = 0;
     };
@@ -16,6 +16,7 @@ namespace pbrt
     class UVMapping2D : public TextureMapping2D
     {
     public:
+        UVMapping2D() : su(1.f), sv(1.f), du(0.f), dv(0.f) {}
 	    UVMapping2D(float su, float sv, float du, float dv);
 
 	    Point2f Map(const SurfaceInteraction& si, Vector2f* dstdx, Vector2f* dstdy) const override;

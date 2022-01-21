@@ -15,13 +15,6 @@ namespace pbrt
 		const Vector2f radius, invRadius;
 	};
 
-	class BoxFilter : public Filter
-	{
-	public:
-		BoxFilter(const Vector2f& radius);
-		float Evaluate(const Point2f& p) const override;
-	};
-
 	class TriangleFilter : public Filter
 	{
 	public:

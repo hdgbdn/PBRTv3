@@ -7,16 +7,6 @@ namespace pbrt
 	{
 	}
 
-	BoxFilter::BoxFilter(const Vector2f& radius)
-		: Filter(radius)
-	{
-	}
-
-	float BoxFilter::Evaluate(const Point2f& p) const
-	{
-		return 1.f;
-	}
-
 	TriangleFilter::TriangleFilter(const Vector2f& radius)
 		: Filter(radius)
 	{

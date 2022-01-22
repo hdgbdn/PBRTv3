@@ -5,6 +5,7 @@
 #include <fmt/core.h>
 #include <string>
 #include <limits>
+#include <functional>
 #include <vector>
 #include <map>
 #include <memory>
@@ -45,10 +46,18 @@ namespace pbrt
 
 	struct Options
 	{
+		Options() {
+			cropWindow[0][0] = 0;
+			cropWindow[0][1] = 1;
+			cropWindow[1][0] = 0;
+			cropWindow[1][1] = 1;
+		}
 		int nThreads = 0;
 		bool quickRender = false;
 		bool quiet = false, verbose = false;
 		std::string imageFile;
+		// x0, x1, y0, y1
+		float cropWindow[2][2];
 	};
 
 	extern Options PbrtOptions;

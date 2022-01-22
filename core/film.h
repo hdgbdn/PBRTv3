@@ -14,7 +14,7 @@ namespace pbrt
 	public:
 		Film(const Point2i& resolution, const Bounds2f& cropWindow,
 			std::unique_ptr<Filter> filt, float diagonal,
-			const std::string& filename, float scale);
+			const std::string& filename, float scale, float maxSampleLuminance);
 		Bounds2i GetSampleBounds() const;
 		Bounds2f GetPhysicalExtent() const;
 		std::unique_ptr<FilmTile> GetFilmTile(const Bounds2i& sampleBounds);
@@ -69,6 +69,8 @@ namespace pbrt
 		const int filterTableSize;
 		std::vector<FilmTilePixel> pixels;
 	};
+
+	Film* CreateFilm(const ParamSet& paramSet, std::unique_ptr<Filter> filter);
 }
 
 #endif

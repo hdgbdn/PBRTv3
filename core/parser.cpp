@@ -420,6 +420,22 @@ namespace pbrt
                 }
                 ps.AddPoint3f(name, std::move(pData), nItems / 3);
             }
+            else if (type == PARAM_TYPE_NORMAL)
+            {
+                if ((nItems % 3) != 0)
+                    Warning(
+                        "Excess values given with normal3 parameter \"%s\". "
+                        "Ignoring last %d of them.",
+                        item.name.c_str(), nItems % 3);
+                int nAlloc = nItems;
+                std::unique_ptr<Normal3f[]> pData(new Normal3f[nItems / 3]);
+                for (int i = 0; i < nItems / 3; ++i) {
+                    pData[i].x = static_cast<float>(item.doubleValues[3 * i]);
+                    pData[i].y = static_cast<float>(item.doubleValues[3 * i + 1]);
+                    pData[i].z = static_cast<float>(item.doubleValues[3 * i + 2]);
+                }
+                ps.AddNormal3f(name, std::move(pData), nItems / 3);
+            }
             else if (type == PARAM_TYPE_STRING)
             {
                 std::unique_ptr<std::string[]> strings(new std::string[nItems]);
@@ -441,8 +457,20 @@ namespace pbrt
                 for(int j = 0; j < nItems; ++j) floats[j] = static_cast<float>(item.doubleValues[j]);
                 ps.AddRGBSpectrum(name, std::move(floats), nItems);
             }
+            else if (type == PARAM_TYPE_TEXTURE) 
+            {
+                if (nItems == 1) {
+                    std::string val(*item.stringValues);
+                    ps.AddTexture(name, val);
+                }
+                else
+                    Error(
+                        "Only one string allowed for \"texture\" parameter "
+                        "\"%s\"",
+                        name.c_str());
+            }
             else
-                Warning("Type of parameter \"%s\" is unknown", item.name.c_str());
+                Warning("Type of parameter {} is unknown", item.name.c_str());
         }
     }
 
@@ -711,6 +739,13 @@ namespace pbrt
                         syntaxError(tok);
                     break;
                 case 'R':
+                    if (tok == "Rotate")
+                    {
+                        float v[4];
+                        for (int i = 0; i < 4; ++i)
+                            v[i] = parseNumber(nextToken(TokenRequired));
+                        pbrtRotate(v[0], v[1], v[2], v[3]);
+                    }
                     break;
                 case 'S':
                     if (tok == "Shape")

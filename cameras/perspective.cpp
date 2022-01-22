@@ -1,4 +1,5 @@
 #include "perspective.h"
+#include "paramset.h"
 
 namespace pbrt {
 	PerspectiveCamera::PerspectiveCamera(const AnimatedTransform& CameraToWorld, const Bounds2f& screenWindow,
@@ -49,5 +50,53 @@ namespace pbrt {
 		return 1;
 	}
 
-
+	PerspectiveCamera* CreatePerspectiveCamera(const ParamSet& params, const AnimatedTransform& cam2world, Film* film,
+		const Medium* medium)
+	{
+		float shutteropen = params.FindOneFloat("shutteropen", 0.f);
+		float shutterclose = params.FindOneFloat("shutterclose", 1.f);
+		if (shutterclose < shutteropen)
+		{
+			Warning("Shutter close time [%f] < shutter open [%f].  Swapping them.",
+				shutterclose, shutteropen);
+			std::swap(shutterclose, shutteropen);
+		}
+		float lensradius = params.FindOneFloat("lensradius", 0.f);
+		float focaldistance = params.FindOneFloat("focaldistance", 1e6);
+		float frame = params.FindOneFloat(
+			"frameaspectratio",
+			float(film->fullResolution.x) / float(film->fullResolution.y));
+		Bounds2f screen;
+		if (frame > 1.f) {
+			screen.pMin.x = -frame;
+			screen.pMax.x = frame;
+			screen.pMin.y = -1.f;
+			screen.pMax.y = 1.f;
+		}
+		else {
+			screen.pMin.x = -1.f;
+			screen.pMax.x = 1.f;
+			screen.pMin.y = -1.f / frame;
+			screen.pMax.y = 1.f / frame;
+		}
+		int swi;
+		const float* sw = params.FindFloat("screenwindow", &swi);
+		if (sw) {
+			if (swi == 4) {
+				screen.pMin.x = sw[0];
+				screen.pMax.x = sw[1];
+				screen.pMin.y = sw[2];
+				screen.pMax.y = sw[3];
+			}
+			else
+				Error("\"screenwindow\" should have four values");
+		}
+		float fov = params.FindOneFloat("fov", 90.);
+		float halffov = params.FindOneFloat("halffov", -1.f);
+		if (halffov > 0.f)
+			// hack for structure synth, which exports half of the full fov
+			fov = 2.f * halffov;
+		return new PerspectiveCamera(cam2world, screen, shutteropen, shutterclose,
+			lensradius, focaldistance, fov, film, medium);
+	}
 }

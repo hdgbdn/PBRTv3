@@ -19,6 +19,10 @@ namespace pbrt
 		Vector3f dxCamera, dyCamera;
 		float A;
 	};
+
+	PerspectiveCamera* CreatePerspectiveCamera(const ParamSet& params,
+		const AnimatedTransform& cam2world,
+		Film* film, const Medium* medium);
 }
 
 #endif

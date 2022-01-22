@@ -1101,11 +1101,14 @@ namespace pbrt
 	class Bounds3
 	{
 	public:
-		const T minNum = std::numeric_limits<T>::lowest();
-		const T maxNum = std::numeric_limits<T>::max();
+		
 
-		Bounds3() : pMin(maxNum), pMax(minNum)
+		Bounds3()
 		{
+			T minNum = std::numeric_limits<T>::lowest();
+			T maxNum = std::numeric_limits<T>::max();
+			pMin = Point3<T>(maxNum, maxNum, maxNum);
+			pMax = Point3<T>(minNum, minNum, minNum);
 		}
 
 		explicit Bounds3(const Point3<T>& p) : pMin(p), pMax(p)
@@ -1152,7 +1155,10 @@ namespace pbrt
 			);
 		}
 
-		Vector3<T> Diagonal() const { return pMax - pMin; }
+		Vector3<T> Diagonal() const
+		{
+			return pMax - pMin;
+		}
 
 		T SurfaceArea() const
 		{

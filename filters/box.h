@@ -5,14 +5,14 @@
 
 namespace pbrt
 {
-
-
 	class BoxFilter : public Filter
 	{
 	public:
-		BoxFilter(const Vector2f& radius);
+		BoxFilter(const Vector2f& radius) : Filter(radius) {}
 		float Evaluate(const Point2f& p) const override;
 	};
+
+	BoxFilter* CreateBoxFilter(const ParamSet& ps);
 
 }  // namespace pbrt
 

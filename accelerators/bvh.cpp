@@ -164,10 +164,8 @@ namespace pbrt
 		if (nPrimitives == 1) {
 			// Create leaf _BVHBuildNode_
 			int firstPrimOffset = orderedPrims.size();
-			for (int i = start; i < end; ++i) {
-				int primNum = primitiveInfo[i].primitiveNumber;
-				orderedPrims.push_back(primitives[primNum]);
-			}
+			int primNum = primitiveInfo[start].primitiveNumber;
+			orderedPrims.push_back(primitives[primNum]);
 			node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
 			return node;
 		}
@@ -236,7 +234,7 @@ namespace pbrt
 					}
 					else {
 						// Allocate _BucketInfo_ for SAH partition buckets
-						constexpr  int nBuckets = 12;
+						static constexpr int nBuckets = 12;
 						BucketInfo buckets[nBuckets];
 
 						// Initialize _BucketInfo_ for SAH partition buckets
@@ -253,7 +251,10 @@ namespace pbrt
 						}
 
 						// Compute costs for splitting after each bucket
+						// and Find bucket to split at that minimizes SAH metric
 						float cost[nBuckets - 1];
+						float minCost = std::numeric_limits<float>::max();
+						int minCostSplitBucket = 0;
 						for (int i = 0; i < nBuckets - 1; ++i) {
 							Bounds3f b0, b1;
 							int count0 = 0, count1 = 0;
@@ -269,12 +270,6 @@ namespace pbrt
 								(count0 * b0.SurfaceArea() +
 									count1 * b1.SurfaceArea()) /
 								bounds.SurfaceArea();
-						}
-
-						// Find bucket to split at that minimizes SAH metric
-						float minCost = cost[0];
-						int minCostSplitBucket = 0;
-						for (int i = 1; i < nBuckets - 1; ++i) {
 							if (cost[i] < minCost) {
 								minCost = cost[i];
 								minCostSplitBucket = i;

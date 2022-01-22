@@ -1,15 +1,16 @@
 #include "path.h"
 
 #include "interaction.h"
+#include "paramset.h"
 #include "sampler.h"
 #include "scene.h"
 
 namespace pbrt
 {
-	PathIntegrator::PathIntegrator(int maxDepth, std::shared_ptr<const Camera> camera, std::shared_ptr<Sampler> sampler)
-		: SamplerIntegrator(camera, sampler), maxDepth(maxDepth)
-	{
-	}
+	PathIntegrator::PathIntegrator(int maxDepth, std::shared_ptr<const Camera> camera, std::shared_ptr<Sampler> sampler,
+		const Bounds2i& pixelBounds, float rrThreshold, const std::string& lightSampleStrategy)
+		: SamplerIntegrator(camera, sampler), maxDepth(maxDepth), rrThreshold(rrThreshold)
+	{}
 	Spectrum PathIntegrator::Li(const RayDifferential& r, const Scene& scene, Sampler& sampler, MemoryArena& arena, int depth) const
 	{
 		Spectrum L(0.f), beta(1.f);
@@ -66,5 +67,30 @@ namespace pbrt
 			}
 		}
 		return L;
+	}
+
+	PathIntegrator* CreatePathIntegrator(const ParamSet& params, std::shared_ptr<Sampler> sampler,
+		std::shared_ptr<const Camera> camera)
+	{
+		int maxDepth = params.FindOneInt("maxdepth", 5);
+		int np;
+		const int* pb = params.FindInt("pixelbounds", &np);
+		Bounds2i pixelBounds = camera->film->GetSampleBounds();
+		if (pb) {
+			if (np != 4)
+				Error("Expected four values for \"pixelbounds\" parameter. Got %d.",
+					np);
+			else {
+				pixelBounds = Intersect(pixelBounds,
+					Bounds2i{ {pb[0], pb[2]}, {pb[1], pb[3]} });
+				if (pixelBounds.Area() == 0)
+					Error("Degenerate \"pixelbounds\" specified.");
+			}
+		}
+		float rrThreshold = params.FindOneFloat("rrthreshold", 1.);
+		std::string lightStrategy =
+			params.FindOneString("lightsamplestrategy", "spatial");
+		return new PathIntegrator(maxDepth, camera, sampler, pixelBounds,
+			rrThreshold, lightStrategy);
 	}
 }

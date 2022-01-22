@@ -201,6 +201,26 @@ namespace pbrt
         return false;
     }
 
+    void ParamSet::AddNormal3f(const std::string& name, std::unique_ptr<Normal3f[]> values, int nValues)
+    {
+        EraseNormal3f(name);
+        ADD_PARAM_TYPE(Normal3f, normal3fs);
+    }
+
+    bool ParamSet::EraseNormal3f(const std::string& name)
+    {
+        for (size_t i = 0; i < normal3fs.size(); ++i)
+        {
+            if (normal3fs[i]->name == name)
+            {
+                normal3fs.erase(normal3fs.begin() + i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     void ParamSet::AddString(const std::string & name, std::unique_ptr<std::string[]> values, int nValues)
     {
         EraseString(name);
@@ -220,6 +240,28 @@ namespace pbrt
         return false;
     }
 
+    void ParamSet::AddTexture(const std::string& name, const std::string& value)
+    {
+        EraseTexture(name);
+        std::unique_ptr<std::string[]> str(new std::string[1]);
+        str[0] = value;
+        textures.emplace_back(new ParamSetItem<std::string>(name, std::move(str), 1));
+    }
+
+    bool ParamSet::EraseTexture(const std::string& n)
+    {
+        for (size_t i = 0; i < textures.size(); ++i)
+        {
+            if (textures[i]->name == n)
+            {
+                textures.erase(textures.begin() + i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     void ParamSet::AddRGBSpectrum(const std::string & name, std::unique_ptr<float[]> values, int nValues)
     {
         EraseSpectrum(name);
@@ -227,9 +269,7 @@ namespace pbrt
         nValues /= 3;
         std::unique_ptr<Spectrum[]> s(new Spectrum[nValues]);
         for (int i = 0; i < nValues; ++i) s[i] = Spectrum::FromRGB(&values[3 * i]);
-        std::shared_ptr<ParamSetItem<Spectrum>> psi(
-                new ParamSetItem<Spectrum>(name, std::move(s), nValues));
-        spectra.push_back(psi);
+        spectra.emplace_back(new ParamSetItem<Spectrum>(name, std::move(s), nValues));
     }
 
     bool ParamSet::EraseSpectrum(const std::string & n)

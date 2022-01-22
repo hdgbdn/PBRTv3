@@ -17,6 +17,8 @@ namespace pbrt
 		const Point3f pLight;
 		const Spectrum I;
 	};
+
+    std::shared_ptr<PointLight> CreatePointLight(const Transform& l2w, const Medium* medium, const ParamSet& param);
 }
 
 #endif

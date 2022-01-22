@@ -1,4 +1,5 @@
 #include "spot.h"
+#include "paramset.h"
 
 namespace pbrt
 {
@@ -30,5 +31,32 @@ namespace pbrt
 	Spectrum SpotLight::Power() const
 	{
 		return I * 2 * Pi * (1 - .5f * (cosFalloffstart + cosTotalWidth));
+	}
+
+	float SpotLight::Pdf_Li(const Interaction& ref, const Vector3f& wi) const
+	{
+		return 0.f;
+	}
+
+	std::shared_ptr<SpotLight> CreateSpotLight(const Transform& lightToWorld, const Medium* medium,
+	                                           const ParamSet& paramSet)
+	{
+		Spectrum I = paramSet.FindOneSpectrum("I", Spectrum(1.0));
+		Spectrum sc = paramSet.FindOneSpectrum("scale", Spectrum(1.0));
+		float coneangle = paramSet.FindOneFloat("coneangle", 30.);
+		float conedelta = paramSet.FindOneFloat("conedeltaangle", 5.);
+		// Compute spotlight world to light transformation
+		Point3f from = paramSet.FindOnePoint3f("from", Point3f(0, 0, 0));
+		Point3f to = paramSet.FindOnePoint3f("to", Point3f(0, 0, 1));
+		Vector3f dir = Normalize(to - from);
+		Vector3f du, dv;
+		CoordinateSystem(dir, &du, &dv);
+		Transform dirToZ =
+			Transform(Matrix4x4(du.x, du.y, du.z, 0., dv.x, dv.y, dv.z, 0., dir.x,
+				dir.y, dir.z, 0., 0, 0, 0, 1.));
+		Transform light2world =
+			lightToWorld * Translate(Vector3f(from.x, from.y, from.z)) * Inverse(dirToZ);
+		return std::make_shared<SpotLight>(light2world, medium, I * sc, coneangle,
+			coneangle - conedelta);
 	}
 }

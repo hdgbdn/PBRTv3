@@ -77,9 +77,9 @@ static StatRegisterer STATS_REG##var(STATS_FUNC##var)
         NumProfEvents
     };
 
-    extern thread_local uint32_t ProfilerState;
+    extern thread_local uint64_t ProfilerState;
 
-    inline uint32_t CurrentProfilerState() { return ProfilerState; }
+    inline uint64_t CurrentProfilerState() { return ProfilerState; }
 
     class ProfilePhase
     {

@@ -4,7 +4,7 @@
 namespace pbrt
 {
 	// Statistics Local Variables
-
+	thread_local uint64_t ProfilerState;
     std::vector<std::function<void(StatsAccumulator&)>>* StatRegisterer::funcs;
 	static StatsAccumulator statsAccumulator;
 	static std::unique_ptr<std::atomic<uint64_t>[]> profileSamples;

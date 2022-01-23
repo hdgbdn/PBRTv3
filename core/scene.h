@@ -13,7 +13,7 @@ namespace pbrt
 	public:
 		Scene(std::shared_ptr<Primitive> aggregate,
 			const std::vector<std::shared_ptr<Light>>& light)
-			: aggregate(aggregate), lights(lights),
+			: aggregate(aggregate), lights(light),
 				worldBound(aggregate->WorldBound())
 		{
 			for (const auto& light : lights)
@@ -22,11 +22,9 @@ namespace pbrt
 		std::vector<std::shared_ptr<Light>> lights;
 		const Bounds3f Worldbound() const { return worldBound; }
 		bool Intersect(const Ray& ray, SurfaceInteraction* isect) const;
+		bool IntersectP(const Ray& ray) const;
 		bool IntersectTr(Ray ray, Sampler& sampler,
 			SurfaceInteraction* isect, Spectrum* Tr) const;
-		bool IntersectP(const Ray& ray) const {
-			return aggregate->IntersectP(ray);
-		}
 	private:
 		std::shared_ptr<Primitive> aggregate;
 		Bounds3f worldBound;

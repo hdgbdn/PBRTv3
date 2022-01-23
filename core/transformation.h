@@ -173,7 +173,7 @@ namespace pbrt
         Point3f o = (*this)(r.o, &oError);
         Vector3f d = (*this)(r.d);
         //TODO Offset ray origin to edge of error bounds and compute tMax
-        float tMax = 0;
+        float tMax = r.tMax;
         return Ray(o, d, tMax, r.time, r.medium);
     }
 
@@ -289,11 +289,21 @@ namespace pbrt
     public:
         AnimatedTransform(const Transform* startTransform,
             float startTime, const Transform* endTransform, float endTime)
+	            : startTransform(startTransform),
+            endTransform(endTransform),
+            startTime(startTime),
+            endTime(endTime),
+            actuallyAnimated(*startTransform != *endTransform)
             {
                 // TODO need implement
             };
         Bounds3f MotionBounds(const Bounds3f& b) const;
         void Interpolate(float time, Transform* t) const;
+        RayDifferential operator()(const RayDifferential& r) const;
+    private:
+        const Transform* startTransform, * endTransform;
+        const float startTime, endTime;
+        const bool actuallyAnimated;
     };
 
     Transform Inverse(const Transform& t);

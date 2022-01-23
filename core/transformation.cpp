@@ -299,6 +299,19 @@ namespace pbrt
         // TODO need implement
     }
 
+    RayDifferential AnimatedTransform::operator()(const RayDifferential& r) const
+    {
+		if (!actuallyAnimated || r.time <= startTime)
+			return (*startTransform)(r);
+		else if (r.time >= endTime)
+			return (*endTransform)(r);
+		else {
+			Transform t;
+			Interpolate(r.time, &t);
+			return t(r);
+		}
+    }
+
     Bounds3f AnimatedTransform::MotionBounds(const Bounds3f &b) const
     {
         // TODO need implement

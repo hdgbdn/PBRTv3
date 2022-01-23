@@ -971,11 +971,13 @@ namespace pbrt
 	class Bounds2
 	{
 	public:
-		const T minNum = std::numeric_limits<T>::lowest();
-		const T maxNum = std::numeric_limits<T>::max();
 
-		Bounds2() : pMin(maxNum), pMax(minNum)
+		Bounds2()
 		{
+			const T minNum = std::numeric_limits<T>::lowest();
+			const T maxNum = std::numeric_limits<T>::max();
+			pMin = Point2<T>(maxNum, maxNum);
+			pMax = Point2<T>(minNum, minNum);
 		}
 
 		explicit Bounds2(const Point2<T>& p) : pMin(p), pMax(p)

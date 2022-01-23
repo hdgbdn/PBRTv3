@@ -5,7 +5,7 @@ namespace pbrt
 {
 	Film::Film(const Point2i& resolution, const Bounds2f& cropWindow, std::unique_ptr<Filter> filt, float diagonal,
 	           const std::string& filename, float scale, float maxSampleLuminance)
-		: fullResolution(resolution), diagonal(diagonal), filter(std::move(filter)),
+		: fullResolution(resolution), diagonal(diagonal), filter(std::move(filt)),
 		  filename(filename),
 		  croppedPixelBounds(Point2i(std::ceil(fullResolution.x * cropWindow.pMin.x),
 		                             std::ceil(fullResolution.y * cropWindow.pMin.y)),
@@ -145,7 +145,7 @@ namespace pbrt
 			ifx[x - p0.x] = std::min(static_cast<int>(std::floor(fx)), filterTableSize - 1);
 		}
 		int* ify = ALLOCA(int, p1.y - p0.y);
-		for (int y = p0.x; y < p1.x; ++y)
+		for (int y = p0.y; y < p1.y; ++y)
 		{
 			float fy = std::abs((y - pFilmDiscrete.y) * invFilterRadius.y * filterTableSize);
 			ify[y - p0.y] = std::min(static_cast<int>(std::floor(fy)), filterTableSize - 1);

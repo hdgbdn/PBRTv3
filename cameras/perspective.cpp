@@ -31,7 +31,8 @@ namespace pbrt {
 	{
 		Point3f pFilm = Point3f(sample.pFilm.x, sample.pFilm.y, 0);
 		Point3f pCamera = RasterToCamera(pFilm);
-		*rd = Ray(pCamera, Vector3f(0, 0, 1));
+		Vector3f dir = Normalize(Vector3f(pCamera.x, pCamera.y, pCamera.z));
+		*rd = RayDifferential(Point3f(0, 0, 0), dir);
 
 		// TODO Modify ray for depth of field
 
@@ -39,9 +40,9 @@ namespace pbrt {
 			//TODO Compute OrthographicCamera ray differentials accounting for lens >>
 		}
 		else {
-			rd->rxOrigin = rd->o + dxCamera;
-			rd->ryOrigin = rd->o + dyCamera;
-			rd->rxDirection = rd->ryDirection = rd->d;
+			rd->rxOrigin = rd->ryOrigin = rd->o;
+			rd->rxDirection = Normalize(Vector3f(pCamera) + dxCamera);
+			rd->ryDirection = Normalize(Vector3f(pCamera) + dyCamera);
 		}
 		rd->time = Lerp(sample.time, shutterOpen, shutterClose);
 		rd->hasDifferentials = true;

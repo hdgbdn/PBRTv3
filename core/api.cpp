@@ -23,10 +23,16 @@
 
 // light header
 #include "infinite.h"
+#include "point.h"
+#include "spot.h"
 
 // image header
+#include "box.h"
 #include "imagemap.h"
+#include "path.h"
+#include "perspective.h"
 #include "scale.h"
+#include "stratified.h"
 
 namespace pbrt
 {
@@ -45,6 +51,11 @@ namespace pbrt
     struct TransformSet
     {
         Transform& operator[](int i)
+        {
+            return t[i];
+        }
+
+        const Transform& operator[](int i) const
         {
             return t[i];
         }
@@ -75,6 +86,7 @@ namespace pbrt
         ParamSet IntegratorParams;
         std::string CameraName = "perspective";
         ParamSet CameraParams;
+        TransformSet CameraToWorld;
         std::map<std::string, std::shared_ptr<Medium>> namedMedia;
         std::vector<std::shared_ptr<Light>> lights;
 
@@ -82,6 +94,7 @@ namespace pbrt
         std::vector<std::shared_ptr<Primitive>>* currentInstance = nullptr;
         std::vector<std::shared_ptr<Primitive>> primitives;
 
+        Camera* MakeCamera() const;
         Scene* MakeScene();
         Integrator* MakeIntegrator() const;
     };
@@ -215,8 +228,8 @@ namespace pbrt
 		{
 			if (cache.find(trans) != cache.end())
 			{
-                *origin = cache[trans].first;
-                *inverse = cache[trans].second;
+                if (origin) *origin = cache[trans].first;
+                if (inverse) *inverse = cache[trans].second;
 			}
             else
             {
@@ -225,8 +238,8 @@ namespace pbrt
                 *t = trans;
                 *tr = Inverse(trans);
                 cache[trans] = std::make_pair(t, tr);
-                *origin = t;
-                *inverse = tr;
+                if (origin) *origin = t;
+                if (inverse) *inverse = tr;
             }
 		}
     private:
@@ -288,10 +301,65 @@ do { if (curTransform.IsAnimated())                                   \
         if (activeTransformBits & (1 << i)) { expr }
 
     // Object Creation Function Definitions
+	Camera* MakeCamera(const std::string& name, const ParamSet& paramSet, 
+        const TransformSet& cam2worldSet, float transformStart, float transformEnd, Film* film)
+	{
+        Camera* camera = nullptr;
+        MediumInterface mediumInterface = graphicsState.CreateMediumInterface();
+        Transform* cam2World[2];
+        transformCache.Lookup(cam2worldSet[0], &cam2World[0], nullptr);
+        transformCache.Lookup(cam2worldSet[1], &cam2World[1], nullptr);
+        AnimatedTransform animatedCam2World(cam2World[0], transformStart,
+            cam2World[1], transformEnd);
+        if (name == "perspective")
+            camera = CreatePerspectiveCamera(paramSet, animatedCam2World, film,
+                mediumInterface.outside);
+        return camera;
+	}
+
+    std::unique_ptr<Filter> MakeFilter(const std::string& name, const ParamSet& paramSet)
+	{
+        Filter* filter = nullptr;
+        if (name == "box")
+            filter = CreateBoxFilter(paramSet);
+		else 
+        {
+            Error("Filter \"%s\" unknown.", name.c_str());
+            exit(1);
+        }
+        paramSet.ReportUnused();
+        return std::unique_ptr<Filter>(filter);
+	}
+
+    Film* MakeFilm(const std::string& name, const ParamSet& paramSet, std::unique_ptr<Filter> filter)
+	{
+        Film* film = nullptr;
+        if (name == "image")
+            film = CreateFilm(paramSet, std::move(filter));
+        else
+            Warning("Film \"%s\" unknown.", name.c_str());
+        paramSet.ReportUnused();
+        return film;
+	}
+
+    std::shared_ptr<Sampler> MakeSampler(const std::string& name,
+                                         const ParamSet& paramSet,
+                                         const Film* film)
+	{
+        Sampler* sampler = nullptr;
+        if (name == "stratified")
+            sampler = CreateStratifiedSampler(paramSet);
+        else
+            Warning("Sampler \"%s\" unknown.", name.c_str());
+        paramSet.ReportUnused();
+        return std::shared_ptr<Sampler>(sampler);
+	}
 
     STAT_COUNTER("Scene/Materials created", nMaterialsCreated);
-    std::shared_ptr<Material> MakeMaterial(const std::string &name,
-                                           const TextureParams &mp) {
+
+    std::shared_ptr<Material> MakeMaterial(const std::string& name,
+                                           const TextureParams& mp)
+    {
         Material *material = nullptr;
         if (name.empty() || name == "none")
             return nullptr;
@@ -344,6 +412,10 @@ do { if (curTransform.IsAnimated())                                   \
         std::shared_ptr<Light> light;
         if (name == "infinite")
             light = CreateInfinitedLight(light2World, params);
+        else if (name == "point")
+            light = CreatePointLight(light2World, mediumInterface.outside, params);
+        else if (name == "spot")
+            light = CreateSpotLight(light2World, mediumInterface.outside, params);
         else
             Warning("Light \"%s\" unknown.", name.c_str());
         params.ReportUnused();
@@ -500,6 +572,8 @@ do { if (curTransform.IsAnimated())                                   \
         VERIFY_OPTIONS("Camera");
         renderOptions->CameraName = name;
         renderOptions->CameraParams = params;
+        renderOptions->CameraToWorld = Inverse(curTransform);
+        namedCoordinateSystems["camera"] = renderOptions->CameraToWorld;
     }
 
     void pbrtAccelerator(const std::string& name, const ParamSet& params)
@@ -559,9 +633,17 @@ do { if (curTransform.IsAnimated())                                   \
             Warning("Missing end to pbrtTransformBegin()");
             pushedTransforms.pop_back();
         }
-        std::unique_ptr<Integrator> integrator(renderOptions->MakeIntegrator());
         std::unique_ptr<Scene> scene(renderOptions->MakeScene());
+        std::unique_ptr<Integrator> integrator(renderOptions->MakeIntegrator());
         if (scene && integrator) integrator->Render(*scene);
+
+        graphicsState = GraphicsState();
+        //transformCache.Clear();
+        currentApiState = APIState::OptionsBlock;
+        //ImageTexture<Float, Float>::ClearCache();
+        //ImageTexture<RGBSpectrum, Spectrum>::ClearCache();
+        renderOptions.reset(new RenderOptions);
+
         //TerminateWorkerThreads();
     }
 
@@ -763,6 +845,7 @@ do { if (curTransform.IsAnimated())                                   \
 			Error("pbrtCleanup() called without pbrtInit()");
 		else if (currentApiState == APIState::WorldBlock)
 			Error("pbrtCleanup() called while inside world block");
+        currentApiState = APIState::Uninitialized;
         renderOptions.reset(nullptr);
 	}
 
@@ -773,6 +856,20 @@ do { if (curTransform.IsAnimated())                                   \
             tInv.t[i] = Inverse(ts.t[i]);
         return tInv;
     }
+
+    Camera* RenderOptions::MakeCamera() const {
+        std::unique_ptr<Filter> filter = MakeFilter(FilterName, FilterParams);
+        Film* film = MakeFilm(FilmName, FilmParams, std::move(filter));
+        if (!film) {
+            Error("Unable to create film.");
+            return nullptr;
+        }
+        Camera* camera = pbrt::MakeCamera(CameraName, CameraParams, CameraToWorld,
+            renderOptions->transformStartTime,
+            renderOptions->transformEndTime, film);
+        return camera;
+    }
+
     Scene* RenderOptions::MakeScene()
     {
         std::shared_ptr<Primitive> accelerator = MakeAccelerator(AcceleratorName, primitives, AcceleratorParams);
@@ -784,6 +881,25 @@ do { if (curTransform.IsAnimated())                                   \
     }
     Integrator* RenderOptions::MakeIntegrator() const
     {
-        return nullptr;
+        std::shared_ptr<const Camera> camera(MakeCamera());
+        if (!camera) {
+            Error("Unable to create camera");
+            return nullptr;
+        }
+        std::shared_ptr<Sampler> sampler =
+            MakeSampler(SamplerName, SamplerParams, camera->film);
+
+        Integrator* integrator = nullptr;
+
+        if (IntegratorName == "path")
+            integrator = CreatePathIntegrator(IntegratorParams, sampler, camera);
+
+        IntegratorParams.ReportUnused();
+        // Warn if no light sources are defined
+        if (lights.empty())
+            Warning(
+                "No light sources defined in scene; "
+                "rendering a black image.");
+        return integrator;
     }
 }

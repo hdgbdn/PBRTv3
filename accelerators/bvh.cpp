@@ -188,7 +188,8 @@ namespace pbrt
 				node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
 				return node;
 			}
-			else {
+			else 
+			{
 				// Partition primitives based on _splitMethod_
 				switch (splitMethod) {
 				case SplitMethod::Middle: {
@@ -306,15 +307,17 @@ namespace pbrt
 					break;
 				}
 				}
-				node->InitInterior(dim,
-					recursiveBuild(arena, primitiveInfo, start, mid,
-						totalNodes, orderedPrims),
-					recursiveBuild(arena, primitiveInfo, mid, end,
-						totalNodes, orderedPrims));
+				auto left = recursiveBuild(arena, primitiveInfo, start, mid,
+					totalNodes, orderedPrims);
+				auto right = recursiveBuild(arena, primitiveInfo, mid, end,
+					totalNodes, orderedPrims);
+				node->InitInterior(dim, left, right);
 			}
 		}
 		return node;
 	}
+
+
 
 	BVHBuildNode* pbrt::BVHAccel::emitLBVH(BVHBuildNode*& buildNodes,
 	                                       const std::vector<BVHPrimitiveInfo>& primitiveInfo,
@@ -506,6 +509,7 @@ namespace pbrt
 			finishedTreelets.size(), totalNodes);
 	}
 
+
 	int BVHAccel::flattenBVHTree(BVHBuildNode* node, int* offset)
 	{
 		LinearBVHNode* linearNode = &linearNodes[*offset];
@@ -521,8 +525,8 @@ namespace pbrt
 			linearNode->axis = node->splitAxis;
 			linearNode->nPrimitives = 0;
 			flattenBVHTree(node->children[0], offset);
-			linearNode->secondChildOffset =
-				flattenBVHTree(node->children[1], offset);
+			int secondOffset = flattenBVHTree(node->children[1], offset);
+			linearNode->secondChildOffset = secondOffset;
 		}
 		return myOffset;
 	}

@@ -19,8 +19,9 @@ namespace pbrt
 	class Light
 	{
 	public:
+		virtual ~Light() = default;
 		Light(int flags, const Transform& LightToWorld, const MediumInterface& mediumInterface,
-			int nSamples = 1);
+		      int nSamples = 1);
 		virtual Spectrum Power() const = 0;
 		virtual void Preprocess(const Scene& scene);;
 		virtual Spectrum Le(const RayDifferential& ray) const;

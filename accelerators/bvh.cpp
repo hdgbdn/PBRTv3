@@ -582,9 +582,43 @@ namespace pbrt
         FreeAligned(linearNodes);
     }
 
-    bool BVHAccel::IntersectP(const Ray &)
+    bool BVHAccel::IntersectP(const Ray& r)
     {
-        // TODO need implement
+		Vector3f invDir(1 / r.d.x, 1 / r.d.y, 1 / r.d.z);
+		int dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
+		int toVisitOffset = 0, currentNodeIndex = 0;
+		int nodesToVisit[64];
+		while (true)
+		{
+			const LinearBVHNode* curLinearNode = &linearNodes[currentNodeIndex];
+			if (curLinearNode->bounds.IntersectP(r, invDir, dirIsNeg))
+			{
+				if (curLinearNode->nPrimitives > 0)
+				{
+					for (int i = 0; i < curLinearNode->nPrimitives; ++i)
+						if (primitives[curLinearNode->primitivesOffset + i]->IntersectP(r))
+							return true;
+					if (toVisitOffset == 0) break;
+					currentNodeIndex = nodesToVisit[--toVisitOffset];
+				}
+				else
+				{
+					if (dirIsNeg[curLinearNode->axis]) {
+						nodesToVisit[toVisitOffset++] = currentNodeIndex + 1;
+						currentNodeIndex = curLinearNode->secondChildOffset;
+					}
+					else {
+						nodesToVisit[toVisitOffset++] = curLinearNode->secondChildOffset;
+						currentNodeIndex = currentNodeIndex + 1;
+					}
+				}
+			}
+			else
+			{
+				if (toVisitOffset == 0) break;
+				currentNodeIndex = nodesToVisit[--toVisitOffset];
+			}
+		}
         return false;
     }
 

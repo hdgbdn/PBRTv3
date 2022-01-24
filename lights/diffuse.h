@@ -10,7 +10,7 @@ namespace pbrt
 	public:
 		DiffuseAreaLight(const Transform& LightToWorld,
 			const MediumInterface& mediumInterface, const Spectrum& Lemit,
-			int nSamples, const std::shared_ptr<Shape>& shape);
+			int nSamples, const std::shared_ptr<Shape>& shape, bool twoSided = false);
 		Spectrum L(const Interaction& intr, const Vector3f& w) const override;
 		Spectrum Power() const override;
 		Spectrum Sample_Li(const Interaction& ref, const Point2f& u, Vector3f* wi, float* pdf, VisibilityTester* vis) const override;
@@ -20,6 +20,9 @@ namespace pbrt
 		std::shared_ptr<Shape> shape;
 		const float area;
 	};
+	std::shared_ptr<AreaLight> CreateDiffuseAreaLight(
+		const Transform& light2world, const Medium* medium,
+		const ParamSet& paramSet, const std::shared_ptr<Shape>& shape);
 }
 
 #endif

@@ -20,6 +20,7 @@
 // shape header
 #include "triangle.h"
 #include "sphere.h"
+#include "disk.h"
 
 // light header
 #include "infinite.h"
@@ -28,6 +29,7 @@
 
 // image header
 #include "box.h"
+#include "diffuse.h"
 #include "imagemap.h"
 #include "path.h"
 #include "perspective.h"
@@ -425,7 +427,14 @@ do { if (curTransform.IsAnimated())                                   \
     std::shared_ptr<AreaLight> MakeAreaLight(const std::string& name, const Transform& light2World,
         const MediumInterface& mi, const ParamSet& params, std::shared_ptr<Shape> shape)
     {
-        return {};
+        std::shared_ptr<AreaLight> area;
+        if (name == "area" || name == "diffuse")
+            area = CreateDiffuseAreaLight(light2World, mi.outside,
+                params, shape);
+        else
+            Warning("Area light \"%s\" unknown.", name.c_str());
+        params.ReportUnused();
+        return area;
     }
 
     std::vector<std::shared_ptr<Shape>> MakeShapes(const std::string& name, const Transform* ObjectToWorld,
@@ -435,8 +444,9 @@ do { if (curTransform.IsAnimated())                                   \
 	    std::vector<std::shared_ptr<Shape>> shapes;
         std::shared_ptr<Shape> s;
         if (name == "sphere")
-            s = CreateSphereShape(ObjectToWorld,WorldToObject, reverseOrientation, paramSet);
-
+            s = CreateSphereShape(ObjectToWorld, WorldToObject, reverseOrientation, paramSet);
+        else if (name == "disk")
+            s = CreateDiskShape(ObjectToWorld, WorldToObject, reverseOrientation, paramSet);
         if (s != nullptr) shapes.push_back(s);
         else if (name == "trianglemesh")
         {
@@ -606,7 +616,7 @@ do { if (curTransform.IsAnimated())                                   \
 
         renderOptions.reset(new RenderOptions);
         graphicsState = GraphicsState();
-
+        ParallelInit();
 		SampledSpectrum::Init();
 	}
 
@@ -846,6 +856,7 @@ do { if (curTransform.IsAnimated())                                   \
 		else if (currentApiState == APIState::WorldBlock)
 			Error("pbrtCleanup() called while inside world block");
         currentApiState = APIState::Uninitialized;
+        ParallelCleanup();
         renderOptions.reset(nullptr);
 	}
 

@@ -1,7 +1,9 @@
 #include "imageio.h"
+#include "spectrum.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stbimage.h"
-#include "spectrum.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stbimage_write.h"
 
 namespace pbrt
 {
@@ -30,5 +32,16 @@ namespace pbrt
 
         stbi_image_free(data);
         return std::move(ret);
+	}
+
+	void WriteImage(const std::string& name, const float* rgb, const Bounds2i& outputBounds,
+		const Point2i& totalResolution)
+	{
+        if (!stbi_write_hdr(
+            name.c_str(), totalResolution.x, totalResolution.y, 3, rgb))
+        {
+            Error("Write image error");
+        }
+        return;
 	}
 }

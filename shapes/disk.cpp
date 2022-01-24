@@ -1,5 +1,6 @@
 #include "disk.h"
 #include "efloat.h"
+#include "paramset.h"
 #include "sampling.h"
 
 namespace pbrt
@@ -28,6 +29,17 @@ namespace pbrt
 		if (reverseOrientation) it.n *= -1;
 		it.p = (*ObjectToWorld)(pObj, Vector3f(0, 0, 0), &it.pError);
 		return it;
+	}
+
+	std::shared_ptr<Disk> CreateDiskShape(const Transform* o2w, const Transform* w2o, bool reverseOrientation,
+		const ParamSet& params)
+	{
+		float height = params.FindOneFloat("height", 0.);
+		float radius = params.FindOneFloat("radius", 1);
+		float inner_radius = params.FindOneFloat("innerradius", 0);
+		float phimax = params.FindOneFloat("phimax", 360);
+		return std::make_shared<Disk>(o2w, w2o, reverseOrientation, height, radius,
+			inner_radius, phimax);
 	}
 
 	bool Disk::Intersect(const Ray& r, float* tHit, SurfaceInteraction* isect, bool testAlphaTexture) const

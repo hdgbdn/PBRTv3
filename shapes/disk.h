@@ -20,6 +20,11 @@ namespace pbrt
 	private:
 		const float height, radius, innerRadius, phiMax;
 	};
+
+	std::shared_ptr<Disk> CreateDiskShape(const Transform* o2w,
+		const Transform* w2o,
+		bool reverseOrientation,
+		const ParamSet& params);
 }
 
 #endif

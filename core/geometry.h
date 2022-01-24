@@ -492,6 +492,16 @@ namespace pbrt
 	}
 
 	template <typename T>
+	Point2<T> Min(const Point2<T>& pa, const Point2<T>& pb) {
+		return Point2<T>(std::min(pa.x, pb.x), std::min(pa.y, pb.y));
+	}
+
+	template <typename T>
+	Point2<T> Max(const Point2<T>& pa, const Point2<T>& pb) {
+		return Point2<T>(std::max(pa.x, pb.x), std::max(pa.y, pb.y));
+	}
+
+	template <typename T>
 	class Point3
 	{
 	public:

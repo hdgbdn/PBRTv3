@@ -676,9 +676,21 @@ namespace pbrt
                         syntaxError(tok);
                     break;
                 case 'C':
-                    if (tok == "Camera")
+                    if (tok == "ConcatTransform") {
+                        if (nextToken(TokenRequired) != "[") syntaxError(tok);
+                        float m[16];
+                        for (int i = 0; i < 16; ++i)
+                            m[i] = parseNumber(nextToken(TokenRequired));
+                        if (nextToken(TokenRequired) != "]") syntaxError(tok);
+                        pbrtConcatTransform(m);
+                    }
+                    else if (tok == "Camera")
                         basicParamListEntrypoint(SpectrumType::Reflectance,
                                                  pbrtCamera);
+            	else if (tok == "CoordSysTransform") {
+                        string_view n = dequoteString(nextToken(TokenRequired));
+                        pbrtCoordSysTransform(n.toString());
+                    }
                     else
                     syntaxError(tok);
                     break;
@@ -760,7 +772,6 @@ namespace pbrt
                         pbrtScale(v[0], v[1], v[2]);
                     } else
                         syntaxError(tok);
-                    break;
                     break;
                 case 'T':
                     if (tok == "TransformBegin")

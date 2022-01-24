@@ -30,11 +30,7 @@ namespace pbrt
 			}
 			if(!foundIntersection || bounces >= maxDepth)
 				break;
-			if (foundIntersection)
-				L += beta * isect.Le(-ray.d);
-			else
-				for (const auto& light : scene.lights)
-					L += beta * light->Le(ray);
+
 			isect.ComputeScatteringFunctions(ray, arena, true);
 			if(!isect.bsdf)
 			{

@@ -57,7 +57,7 @@ namespace pbrt
 			// Merge image tile into Film
 			camera->film->MergeFilmTile(std::move(filmTile));
 			}, nTiles);
-		//TODO Save final image after rendering
+		camera->film->WriteImage();
 	}
 
 	Spectrum SamplerIntegrator::SpecularReflect(const RayDifferential& ray, const SurfaceInteraction& isect, const Scene& scene, Sampler& sampler, MemoryArena& arena, int depth) const

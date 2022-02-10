@@ -1,7 +1,6 @@
 #ifndef PBRT_FILTERS_TRIANGLE_H
 #define PBRT_FILTERS_TRIANGLE_H
 
-#include "core/pbrt.h"
 #include "core/filter.h"
 
 namespace pbrt
@@ -12,6 +11,8 @@ namespace pbrt
 		TriangleFilter(const Vector2f& radius);
 		float Evaluate(const Point2f& p) const override;
 	};
+
+	TriangleFilter* CreateTriangleFilter(const ParamSet& ps);
 }
 
 #endif

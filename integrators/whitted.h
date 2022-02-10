@@ -1,8 +1,8 @@
 #ifndef PBRT_INTEGRATORS_WHITTED_H
 #define PBRT_INTEGRATORS_WHITTED_H
 
-#include "pbrt.h"
-#include "integrator.h"
+#include "core/pbrt.h"
+#include "core/integrator.h"
 
 namespace pbrt
 {

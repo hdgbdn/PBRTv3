@@ -1,6 +1,6 @@
 #include "imagemap.h"
-#include "paramset.h"
-#include "fileutil.h"
+#include "core/paramset.h"
+#include "core/fileutil.h"
 
 namespace pbrt
 {

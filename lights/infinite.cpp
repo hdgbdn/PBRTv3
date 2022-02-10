@@ -1,6 +1,7 @@
 #include "infinite.h"
-#include "scene.h"
-#include "paramset.h"
+#include "core/scene.h"
+#include "core/paramset.h"
+#include "core/imageio.h"
 
 namespace pbrt
 {

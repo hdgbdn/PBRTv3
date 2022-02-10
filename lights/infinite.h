@@ -1,10 +1,10 @@
 #ifndef PBRT_LIGHT_INFINITE_H
 #define PBRT_LIGHT_INFINITE_H
 
-#include "light.h"
-#include "mipmap.h"
-#include "imageio.h"
-#include "sampling.h"
+#include "core/light.h"
+#include "core/mipmap.h"
+#include "core/sampling.h"
+
 namespace pbrt
 {
 	class InfiniteAreaLight : public Light

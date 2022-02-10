@@ -1,6 +1,6 @@
 ﻿#include "bvh.h"
-#include "memory.h"
-#include "parallel.h"
+#include "core/memory.h"
+#include "core/parallel.h"
 
 namespace pbrt
 {

@@ -1,7 +1,7 @@
 #include "disk.h"
-#include "efloat.h"
-#include "paramset.h"
-#include "sampling.h"
+#include "core/efloat.h"
+#include "core/paramset.h"
+#include "core/sampling.h"
 
 namespace pbrt
 {

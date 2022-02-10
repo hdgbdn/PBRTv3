@@ -1,7 +1,7 @@
 #ifndef PBRT_INTEGRATORS_PATH_H
 #define PBRT_INTEGRATORS_PATH_H
 
-#include "integrator.h"
+#include "core/integrator.h"
 
 namespace pbrt
 {

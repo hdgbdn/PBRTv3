@@ -1,9 +1,9 @@
 #include "whitted.h"
-#include "interaction.h"
-#include "scene.h"
-#include "light.h"
-#include "sampler.h"
-#include "reflection.h"
+#include "core/interaction.h"
+#include "core/scene.h"
+#include "core/light.h"
+#include "core/sampler.h"
+#include "core/reflection.h"
 
 using namespace pbrt;
 

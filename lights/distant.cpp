@@ -1,5 +1,5 @@
 #include "distant.h"
-#include "scene.h"
+#include "core/scene.h"
 
 namespace pbrt
 {

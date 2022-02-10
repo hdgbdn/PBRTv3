@@ -2,7 +2,7 @@
 #define PBRT_FILTERS_SINC_H
 
 // filters/sinc.h*
-#include "filter.h"
+#include "core/filter.h"
 
 namespace pbrt {
 

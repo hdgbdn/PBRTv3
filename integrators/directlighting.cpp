@@ -1,6 +1,6 @@
 #include "directlighting.h"
 
-#include "sampler.h"
+#include "core/sampler.h"
 
 namespace pbrt
 {

@@ -1,8 +1,8 @@
 #ifndef PBRT_CAMERA_ORTHO_H
 #define PBRT_CAMERA_ORTHO_H
 
-#include "pbrt.h"
-#include "camera.h"
+#include "core/pbrt.h"
+#include "core/camera.h"
 
 namespace pbrt
 {

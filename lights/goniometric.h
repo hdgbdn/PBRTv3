@@ -1,9 +1,8 @@
 #ifndef PBRT_LIGHTS_GONIOMETRIC_H
 #define PBRT_LIGHTS_GONIOMETRIC_H
 
-#include "light.h"
-#include "mipmap.h"
-#include "imageio.h"
+#include "core/light.h"
+#include "core/mipmap.h"
 
 namespace pbrt
 {

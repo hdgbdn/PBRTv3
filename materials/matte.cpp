@@ -1,9 +1,9 @@
 #include "matte.h"
-#include "memory.h"
-#include "reflection.h"
-#include "paramset.h"
-#include "texture.h"
-#include "interaction.h"
+#include "core/memory.h"
+#include "core/reflection.h"
+#include "core/paramset.h"
+#include "core/texture.h"
+#include "core/interaction.h"
 
 namespace pbrt
 {

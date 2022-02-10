@@ -1,7 +1,7 @@
 #include "diffuse.h"
 
-#include "paramset.h"
-#include "shape.h"
+#include "core/paramset.h"
+#include "core/shape.h"
 
 namespace pbrt
 {

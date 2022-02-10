@@ -1,6 +1,6 @@
 #include "stratified.h"
-#include "sampling.h"
-#include "paramset.h"
+#include "core/sampling.h"
+#include "core/paramset.h"
 
 namespace pbrt
 {

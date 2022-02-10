@@ -1,7 +1,7 @@
 #ifndef PBRT_LIGHT_SPOT_H
 #define PBRT_LIGHT_SPOT_H
 
-#include "light.h"
+#include "core/light.h"
 
 namespace pbrt
 {

@@ -1,5 +1,5 @@
 #include "kdtreeaccel.h"
-#include "memory.h"
+#include "core/memory.h"
 
 namespace pbrt
 {

@@ -25,7 +25,7 @@ add_executable(${CMAKE_PROJECT_NAME} "pbrt.cpp"
                 ${PBRT_SOURCES} 
 )
 
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC accelerators core integrators shapes cameras samplers materials filters textures lights)
+target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fmt)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 3rd/stbimage)
 

@@ -1,8 +1,8 @@
 #include "paramset.h"
 #include "error.h"
 #include "spectrum.h"
-#include "constant.h"
 #include "fileutil.h"
+#include "textures/constant.h"
 
 namespace pbrt
 {

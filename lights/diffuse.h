@@ -1,7 +1,7 @@
 #ifndef PBRT_LIGHT_DIFFUSE_H
 #define PBRT_LIGHT_DIFFUSE_H
 
-#include "light.h"
+#include "core/light.h"
 
 namespace pbrt
 {

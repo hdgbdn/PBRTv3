@@ -1,8 +1,8 @@
 #include "mixmat.h"
-#include "interaction.h"
-#include "memory.h"
-#include "spectrum.h"
-#include "texture.h"
+#include "core/interaction.h"
+#include "core/memory.h"
+#include "core/spectrum.h"
+#include "core/texture.h"
 
 namespace pbrt
 {

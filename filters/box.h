@@ -1,7 +1,7 @@
 #ifndef PBRT_FILTERS_BOX_H
 #define PBRT_FILTERS_BOX_H
 
-#include "filter.h"
+#include "core/filter.h"
 
 namespace pbrt
 {

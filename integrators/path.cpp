@@ -1,9 +1,9 @@
 #include "path.h"
 
-#include "interaction.h"
-#include "paramset.h"
-#include "sampler.h"
-#include "scene.h"
+#include "core/interaction.h"
+#include "core/paramset.h"
+#include "core/sampler.h"
+#include "core/scene.h"
 
 namespace pbrt
 {

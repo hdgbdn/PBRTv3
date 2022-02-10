@@ -1,8 +1,8 @@
 #ifndef PBRT_TEXTURES_MIX_H
 #define PBRT_TEXTURES_MIX_H
 
-#include "pbrt.h"
-#include "texture.h"
+#include "core/pbrt.h"
+#include "core/texture.h"
 
 namespace pbrt
 {

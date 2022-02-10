@@ -1,5 +1,5 @@
 #include "cylinder.h"
-#include "efloat.h"
+#include "core/efloat.h"
 
 namespace pbrt
 {

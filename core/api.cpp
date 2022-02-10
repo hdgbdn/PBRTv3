@@ -8,33 +8,33 @@
 #include "memory.h"
 #include "paramset.h"
 #include "primitive.h"
-#include "bvh.h"
+#include "accelerators/bvh.h"
 #include "integrator.h"
 #include "scene.h"
 #include "stats.h"
 
 // material header
-#include "matte.h"
-#include "plastic.h"
+#include "materials/matte.h"
+#include "materials/plastic.h"
 
 // shape header
-#include "triangle.h"
-#include "sphere.h"
-#include "disk.h"
+#include "shapes/triangle.h"
+#include "shapes/sphere.h"
+#include "shapes/disk.h"
 
 // light header
-#include "infinite.h"
-#include "point.h"
-#include "spot.h"
+#include "lights/infinite.h"
+#include "lights/point.h"
+#include "lights/spot.h"
+#include "lights/diffuse.h"
 
 // image header
-#include "box.h"
-#include "diffuse.h"
-#include "imagemap.h"
-#include "path.h"
-#include "perspective.h"
-#include "scale.h"
-#include "stratified.h"
+#include "filters/box.h"
+#include "textures/imagemap.h"
+#include "integrators/path.h"
+#include "cameras/perspective.h"
+#include "textures/scale.h"
+#include "samplers/stratified.h"
 
 namespace pbrt
 {

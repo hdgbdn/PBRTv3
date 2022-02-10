@@ -1,5 +1,5 @@
-#include "pbrt.h"
-#include "api.h"
+#include "core/pbrt.h"
+#include "core/api.h"
 
 using namespace pbrt;
 

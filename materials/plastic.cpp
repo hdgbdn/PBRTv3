@@ -1,9 +1,9 @@
 #include "plastic.h"
-#include "memory.h"
-#include "interaction.h"
-#include "microfacet.h"
-#include "texture.h"
-#include "paramset.h"
+#include "core/memory.h"
+#include "core/interaction.h"
+#include "core/microfacet.h"
+#include "core/texture.h"
+#include "core/paramset.h"
 
 namespace pbrt
 {

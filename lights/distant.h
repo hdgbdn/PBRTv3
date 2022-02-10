@@ -1,7 +1,7 @@
 #ifndef PBRT_LIGHTS_DISTANT_H
 #define PBRT_LIGHTS_DISTANT_H
 
-#include "light.h"
+#include "core/light.h"
 
 namespace pbrt
 {

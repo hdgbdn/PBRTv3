@@ -1,5 +1,5 @@
 #include "spot.h"
-#include "paramset.h"
+#include "core/paramset.h"
 
 namespace pbrt
 {

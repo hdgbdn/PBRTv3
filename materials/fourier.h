@@ -1,8 +1,8 @@
 #ifndef PBRT_MATERIALS_FOURIER_H
 #define PBRT_MATERIALS_FOURIER_H
 
-#include "pbrt.h"
-#include "material.h"
+#include "core/pbrt.h"
+#include "core/material.h"
 
 namespace pbrt
 {

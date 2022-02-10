@@ -1,8 +1,8 @@
 #ifndef PBRT_TEXTURES_CONSTANT_H
 #define PBRT_TEXTURES_CONSTANT_H
 
-#include "pbrt.h"
-#include "texture.h"
+#include "core/pbrt.h"
+#include "core/texture.h"
 
 namespace pbrt
 {

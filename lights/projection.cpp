@@ -1,4 +1,5 @@
 #include "projection.h"
+#include "core/imageio.h"
 
 namespace pbrt
 {

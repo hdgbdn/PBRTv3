@@ -1,4 +1,5 @@
 #include "goniometric.h"
+#include "core/imageio.h"
 
 namespace pbrt
 {

@@ -1,10 +1,10 @@
 #include "triangle.h"
 
 #include <utility>
-#include "texture.h"
-#include "sampling.h"
-#include "paramset.h"
-#include "constant.h"
+#include "core/texture.h"
+#include "core/sampling.h"
+#include "core/paramset.h"
+#include "textures/constant.h"
 
 namespace pbrt
 {
@@ -38,6 +38,12 @@ namespace pbrt
         if (fIndices)
             faceIndices = std::vector<int>(fIndices, fIndices + nTriangles);
 	}
+
+    Triangle::~Triangle()
+    {
+        // don't delete v! it is just a pointer to tri mesh, wo didn't allocate any memory for it!
+        // delete v;
+    }
 
     Triangle::Triangle(const Transform *ObjectToWorld, const Transform *WorldToObject, bool reverseOrientation, const std::shared_ptr<TriangleMesh>& mesh, int triNumber)
 	    : Shape(ObjectToWorld, WorldToObject, reverseOrientation),

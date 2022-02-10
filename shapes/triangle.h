@@ -1,7 +1,7 @@
 #ifndef PBRT_SHAPE_TRIANGLE_H
 #define PBRT_SHAPE_TRIANGLE_H
 
-#include "shape.h"
+#include "core/shape.h"
 
 namespace pbrt
 {
@@ -26,6 +26,7 @@ namespace pbrt
 	class Triangle : public Shape
 	{
 	public:
+		~Triangle() override;
 		Triangle(const Transform *ObjectToWorld,
                  const Transform *WorldToObject, bool reverseOrientation,
                  const std::shared_ptr<TriangleMesh>& mesh, int triNumber);
@@ -51,6 +52,7 @@ namespace pbrt
 				uv[2] = Point2f(1, 1);
 			}
 		}
+
 		std::shared_ptr<TriangleMesh> mesh;
 		const int* v;
 	};

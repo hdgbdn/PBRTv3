@@ -1,8 +1,8 @@
 #ifndef PBRT_SHAPE_DISK_H
 #define PBRT_SHAPE_DISK_H
 
-#include "pbrt.h"
-#include "shape.h"
+#include "core/pbrt.h"
+#include "core/shape.h"
 
 namespace pbrt
 {

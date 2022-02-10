@@ -3,8 +3,8 @@
 
 #include <utility>
 
-#include "pbrt.h"
-#include "material.h"
+#include "core/pbrt.h"
+#include "core/material.h"
 
 namespace pbrt
 {

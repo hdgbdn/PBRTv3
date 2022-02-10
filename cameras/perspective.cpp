@@ -1,5 +1,5 @@
 #include "perspective.h"
-#include "paramset.h"
+#include "core/paramset.h"
 
 namespace pbrt {
 	PerspectiveCamera::PerspectiveCamera(const AnimatedTransform& CameraToWorld, const Bounds2f& screenWindow,

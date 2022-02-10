@@ -1,5 +1,5 @@
 #include "scale.h"
-#include "paramset.h"
+#include "core/paramset.h"
 
 namespace pbrt
 {

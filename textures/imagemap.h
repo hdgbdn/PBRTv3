@@ -1,11 +1,11 @@
 #ifndef PBRT_TEXTURES_IMAGEMAP_H
 #define PBRT_TEXTURES_IMAGEMAP_H
 
-#include "pbrt.h"
-#include "texture.h"
-#include "mipmap.h"
+#include "core/pbrt.h"
+#include "core/texture.h"
+#include "core/mipmap.h"
+#include "core/imageio.h"
 #include <map>
-#include "imageio.h"
 
 namespace pbrt
 {

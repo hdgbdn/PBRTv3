@@ -1,8 +1,9 @@
 #ifndef PBRT_INTEGRATORS_DIRECTLIGHTING_H
 #define PBRT_INTEGRATORS_DIRECTLIGHTING_H
 
-#include "integrator.h"
-#include "scene.h"
+#include "core/integrator.h"
+#include "core/scene.h"
+#include "core/integrator.h"
 
 namespace pbrt
 {

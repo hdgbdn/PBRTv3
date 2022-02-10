@@ -1,7 +1,7 @@
 #ifndef PBRT_SHAPE_SPHERE_H
 #define PBRT_SHAPE_SPHERE_H
 
-#include "shape.h"
+#include "core/shape.h"
 
 namespace pbrt
 {

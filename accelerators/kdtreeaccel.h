@@ -1,8 +1,8 @@
 #ifndef PBRT_ACCELERATORS_KDTREEACCEL_H
 #define PBRT_ACCELERATORS_KDTREEACCEL_H
 
-#include "pbrt.h"
-#include "primitive.h"
+#include "core/pbrt.h"
+#include "core/primitive.h"
 
 namespace pbrt
 {

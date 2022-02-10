@@ -1,9 +1,9 @@
 #include "sphere.h"
 
 #include <utility>
-#include "efloat.h"
-#include "sampling.h"
-#include "paramset.h"
+#include "core/efloat.h"
+#include "core/sampling.h"
+#include "core/paramset.h"
 
 namespace pbrt
 {

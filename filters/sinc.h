@@ -29,6 +29,8 @@ namespace pbrt {
         const float tau;
     };
 
+    LanczosSincFilter* CreateLanczosSincFilter(const ParamSet& ps);
+
 }  // namespace pbrt
 
 #endif  // PBRT_FILTERS_SINC_H

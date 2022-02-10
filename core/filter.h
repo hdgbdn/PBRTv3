@@ -15,13 +15,6 @@ namespace pbrt
 		const Vector2f radius, invRadius;
 	};
 
-	class TriangleFilter : public Filter
-	{
-	public:
-		TriangleFilter(const Vector2f& radius);
-		float Evaluate(const Point2f& p) const override;
-	};
-
 	class GaussianFilter : public Filter
 	{
 	public:

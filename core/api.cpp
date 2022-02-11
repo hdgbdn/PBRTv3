@@ -28,8 +28,10 @@
 #include "lights/spot.h"
 #include "lights/diffuse.h"
 
-// image header
+// filters
 #include "filters/box.h"
+#include "filters/triangle.h"
+
 #include "textures/imagemap.h"
 #include "integrators/path.h"
 #include "cameras/perspective.h"
@@ -324,6 +326,8 @@ do { if (curTransform.IsAnimated())                                   \
         Filter* filter = nullptr;
         if (name == "box")
             filter = CreateBoxFilter(paramSet);
+        else if (name == "triangle")
+            filter = CreateTriangleFilter(paramSet);
 		else 
         {
             Error("Filter \"%s\" unknown.", name.c_str());

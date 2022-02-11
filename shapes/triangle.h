@@ -55,6 +55,7 @@ namespace pbrt
 
 		std::shared_ptr<TriangleMesh> mesh;
 		const int* v;
+		int faceIndex;
 	};
 
     std::vector<std::shared_ptr<Shape>> CreateTriangleMeshShape(

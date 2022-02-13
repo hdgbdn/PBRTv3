@@ -5,8 +5,13 @@ project(pbrt)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(OpenGL REQUIRED)
+
 # add fmt lib
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/3rd/fmt)
+
+# add imgui lib
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/3rd)
 
 file(GLOB PBRT_SOURCES
     accelerators/*.cpp
@@ -26,7 +31,7 @@ add_executable(${CMAKE_PROJECT_NAME} "pbrt.cpp"
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fmt)
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC fmt imgui OpenGL::GL)
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC 3rd/stbimage)
 
 if (MSVC)

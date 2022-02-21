@@ -1,5 +1,6 @@
 #include "perspective.h"
 #include "core/paramset.h"
+#include "core/sampling.h"
 
 namespace pbrt {
 	PerspectiveCamera::PerspectiveCamera(const AnimatedTransform& CameraToWorld, const Bounds2f& screenWindow,
@@ -20,7 +21,14 @@ namespace pbrt {
 		Point3f pFilm = Point3f(sample.pFilm.x, sample.pFilm.y, 0);
 		Point3f pCamera = RasterToCamera(pFilm);
 		*ray = Ray(Point3f(0, 0, 0), Normalize(Vector3f(pCamera)));
-		// TODO Modify ray for depth of field
+		if (lensRadius > 0)
+		{
+			Point2f pLens = lensRadius * ConcentricSampleDisk(sample.pLens);
+			float ft = focalDistance / ray->d.z;
+			Point3f pFocus = (*ray)(ft);
+			ray->o = Point3f(pLens.x, pLens.y, 0);
+			ray->d = Normalize(pFocus - ray->o);
+		}
 		ray->time = Lerp(sample.time, shutterOpen, shutterClose);
 		ray->medium = medium;
 		*ray = CameraToWorld(*ray);
@@ -34,12 +42,32 @@ namespace pbrt {
 		Vector3f dir = Normalize(Vector3f(pCamera.x, pCamera.y, pCamera.z));
 		*rd = RayDifferential(Point3f(0, 0, 0), dir);
 
-		// TODO Modify ray for depth of field
-
-		if (lensRadius > 0) {
-			//TODO Compute OrthographicCamera ray differentials accounting for lens >>
+		if (lensRadius > 0)
+		{
+			Point2f pLens = lensRadius * ConcentricSampleDisk(sample.pLens);
+			float ft = focalDistance / rd->d.z;
+			Point3f pFocus = (*rd)(ft);
+			rd->o = Point3f(pLens.x, pLens.y, 0);
+			rd->d = Normalize(pFocus - rd->o);
 		}
-		else {
+
+		if (lensRadius > 0) 
+		{
+			Point2f pLens = lensRadius * ConcentricSampleDisk(sample.pLens);
+			Vector3f dx = Normalize(Vector3f(pCamera + dxCamera));
+			float ft = focalDistance / dx.z;
+			Point3f pFocus = Point3f(0, 0, 0) + (ft * dx);
+			rd->rxOrigin = Point3f(pLens.x, pLens.y, 0);
+			rd->rxDirection = Normalize(pFocus - rd->rxOrigin);
+
+			Vector3f dy = Normalize(Vector3f(pCamera + dyCamera));
+			ft = focalDistance / dy.z;
+			pFocus = Point3f(0, 0, 0) + (ft * dy);
+			rd->ryOrigin = Point3f(pLens.x, pLens.y, 0);
+			rd->ryDirection = Normalize(pFocus - rd->ryOrigin);
+		}
+		else 
+		{
 			rd->rxOrigin = rd->ryOrigin = rd->o;
 			rd->rxDirection = Normalize(Vector3f(pCamera) + dxCamera);
 			rd->ryDirection = Normalize(Vector3f(pCamera) + dyCamera);

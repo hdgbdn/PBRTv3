@@ -33,7 +33,7 @@ namespace pbrt
         while (lambdaStart > lambda[i + 1]) ++i;
         auto interp = [lambda, vals](float w, int i)
         {
-            return Lerp((w - lambda[i] / (lambda[i = 1] - lambda[i])),
+            return Lerp((w - lambda[i]) / (lambda[i + 1] - lambda[i]),
                 vals[i], vals[i + 1]);
         };
         for(; i + 1 < n && lambdaEnd >= lambda[i]; ++i)
